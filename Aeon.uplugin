@@ -27,7 +27,8 @@
       "Enabled": true,
       "TargetAllowList": [
         "Editor"
-      ]
+      ],
+      "Optional": true
     },
     {
       "Name": "EnhancedInput",
