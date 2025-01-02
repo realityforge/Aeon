@@ -14,6 +14,8 @@
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
 #include "Aeon/AbilitySystem/AeonAbilityTagRelationshipMapping.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySystemComponent)
+
 #pragma region AbilityTagRelationship Support
 
 // --------------------------------------------------- //
