@@ -45,7 +45,9 @@ bool UAeonGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySyste
     // Expand our ability tags to add additional required/blocked tags
     if (const auto AeonASC = Cast<UAeonAbilitySystemComponent>(&AbilitySystemComponent))
     {
-        AeonASC->GetRequiredAndBlockedActivationTags(AbilityTags, AllActivationRequiredTags, AllActivationBlockedTags);
+        AeonASC->GetRequiredAndBlockedActivationTags(GetAssetTags(),
+                                                     AllActivationRequiredTags,
+                                                     AllActivationBlockedTags);
     }
 
     // The code below this point in the method is copied from the code in the base class with
