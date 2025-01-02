@@ -23,6 +23,13 @@
   ],
   "Plugins": [
     {
+      "Name": "RuleRanger",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
       "Name": "EnhancedInput",
       "Enabled": true
     },
