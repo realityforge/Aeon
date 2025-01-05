@@ -61,10 +61,18 @@ public:
      * @param  AbilityTags The Ability Tags to lookup.
      * @param  OutActivationRequiredTags The container in which to add additional ActivationRequired tags.
      * @param  OutActivationBlockedTags The container in which to add additional ActivationBlocked tags.
+     * @param  OutSourceRequiredTags The container in which to add additional SourceRequired tags.
+     * @param  OutSourceBlockedTags The container in which to add additional SourceBlocked tags.
+     * @param  OutTargetRequiredTags The container in which to add additional TargetRequired tags.
+     * @param  OutTargetBlockedTags The container in which to add additional TargetBlocked tags.
      */
-    void GetRequiredAndBlockedActivationTags(const FGameplayTagContainer& AbilityTags,
-                                             FGameplayTagContainer& OutActivationRequiredTags,
-                                             FGameplayTagContainer& OutActivationBlockedTags) const;
+    void GetAdditionalTagRequirements(const FGameplayTagContainer& AbilityTags,
+                                      FGameplayTagContainer& OutActivationRequiredTags,
+                                      FGameplayTagContainer& OutActivationBlockedTags,
+                                      FGameplayTagContainer& OutSourceRequiredTags,
+                                      FGameplayTagContainer& OutSourceBlockedTags,
+                                      FGameplayTagContainer& OutTargetRequiredTags,
+                                      FGameplayTagContainer& OutTargetBlockedTags) const;
 
     // --------------------------------------------------- //
 

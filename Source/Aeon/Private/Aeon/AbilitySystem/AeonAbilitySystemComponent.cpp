@@ -81,24 +81,40 @@ void UAeonAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplay
     }
 }
 
-void UAeonAbilitySystemComponent::GetRequiredAndBlockedActivationTags(
-    const FGameplayTagContainer& AbilityTags,
-    FGameplayTagContainer& OutActivationRequiredTags,
-    FGameplayTagContainer& OutActivationBlockedTags) const
+void UAeonAbilitySystemComponent::GetAdditionalTagRequirements(const FGameplayTagContainer& AbilityTags,
+                                                               FGameplayTagContainer& OutActivationRequiredTags,
+                                                               FGameplayTagContainer& OutActivationBlockedTags,
+                                                               FGameplayTagContainer& OutSourceRequiredTags,
+                                                               FGameplayTagContainer& OutSourceBlockedTags,
+                                                               FGameplayTagContainer& OutTargetRequiredTags,
+                                                               FGameplayTagContainer& OutTargetBlockedTags) const
 {
     if (TagRelationshipMapping)
     {
-        TagRelationshipMapping->GetActivationRequiredAndBlockedTags(AbilityTags,
-                                                                    OutActivationRequiredTags,
-                                                                    OutActivationBlockedTags);
+        TagRelationshipMapping->GetAdditionalTagRequirements(AbilityTags,
+                                                             OutActivationRequiredTags,
+                                                             OutActivationBlockedTags,
+                                                             OutSourceRequiredTags,
+                                                             OutSourceBlockedTags,
+                                                             OutTargetRequiredTags,
+                                                             OutTargetBlockedTags);
         UE_LOG(AeonTagRelationship,
                Verbose,
-               TEXT("GetRequiredAndBlockedActivationTags for ability defined "
-                    "by tags %s added %s activation required tags and %s activation blocked tags for actor '%s'"),
+               TEXT("GetAdditionalTagRequirements for ability defined by tags %s for actor '%s': "
+                    "ActivationRequiredTags=%s "
+                    "ActivationBlockedTags=%s "
+                    "SourceRequiredTags=%s "
+                    "SourceBlockedTags=%s "
+                    "TargetRequiredTags=%s "
+                    "TargetBlockedTags=%s"),
                *AbilityTags.ToString(),
+               *GetNameSafe(GetOwnerActor()),
                *OutActivationRequiredTags.ToString(),
                *OutActivationBlockedTags.ToString(),
-               *GetNameSafe(GetOwnerActor()));
+               *OutSourceRequiredTags.ToString(),
+               *OutSourceBlockedTags.ToString(),
+               *OutTargetRequiredTags.ToString(),
+               *OutTargetBlockedTags.ToString());
     }
 }
 

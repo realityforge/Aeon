@@ -36,23 +36,34 @@ bool UAeonGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySyste
                                                              const FGameplayTagContainer* TargetTags,
                                                              FGameplayTagContainer* OptionalRelevantTags) const
 {
-    // NOTE: This method was overriden to incorporate support for the AbilityTagRelationship, and
-    //       more specifically for required and blocked activation tag additions from tag relationships
+    // NOTE: This method was overriden to incorporate support for the AbilityTagRelationship
 
     FGameplayTagContainer AllActivationRequiredTags = ActivationRequiredTags;
     FGameplayTagContainer AllActivationBlockedTags = ActivationBlockedTags;
+    FGameplayTagContainer AllSourceRequiredTags = SourceRequiredTags;
+    FGameplayTagContainer AllSourceBlockedTags = SourceBlockedTags;
+    FGameplayTagContainer AllTargetRequiredTags = TargetRequiredTags;
+    FGameplayTagContainer AllTargetBlockedTags = TargetBlockedTags;
 
-    // Expand our ability tags to add additional required/blocked tags
+    // Expand our ability tags to add additional tag requirements
     if (const auto AeonASC = Cast<UAeonAbilitySystemComponent>(&AbilitySystemComponent))
     {
-        AeonASC->GetRequiredAndBlockedActivationTags(GetAssetTags(),
-                                                     AllActivationRequiredTags,
-                                                     AllActivationBlockedTags);
+        AeonASC->GetAdditionalTagRequirements(GetAssetTags(),
+                                              AllActivationRequiredTags,
+                                              AllActivationBlockedTags,
+                                              AllSourceRequiredTags,
+                                              AllSourceBlockedTags,
+                                              AllTargetRequiredTags,
+                                              AllTargetBlockedTags);
     }
 
-    // The code below this point in the method is copied from the code in the base class with
-    // "ActivationRequiredTags" usage replaced with "AllActivationRequiredTags" and
-    // "ActivationBlockedTags" usage replaced with "AllActivationBlockedTags"
+    // The code below this point in the method is copied from the code in the base class with replacements:
+    //   "ActivationRequiredTags" => "AllActivationRequiredTags"
+    //   "ActivationBlockedTags" => "AllActivationBlockedTags"
+    //   "SourceRequiredTags" => "AllSourceRequiredTags"
+    //   "SourceBlockedTags" => "AllSourceBlockedTags"
+    //   "TargetRequiredTags" => "AllTargetRequiredTags"
+    //   "TargetBlockedTags" => "AllTargetBlockedTags"
 
     // Define a common lambda to check for blocked tags
     bool bBlocked = false;
@@ -112,22 +123,22 @@ bool UAeonGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySyste
     CheckForBlocked(AbilitySystemComponent.GetOwnedGameplayTags(), AllActivationBlockedTags);
     if (SourceTags)
     {
-        CheckForBlocked(*SourceTags, SourceBlockedTags);
+        CheckForBlocked(*SourceTags, AllSourceBlockedTags);
     }
     if (TargetTags)
     {
-        CheckForBlocked(*TargetTags, TargetBlockedTags);
+        CheckForBlocked(*TargetTags, AllTargetBlockedTags);
     }
 
     // Now check all required tags
     CheckForRequired(AbilitySystemComponent.GetOwnedGameplayTags(), AllActivationRequiredTags);
     if (SourceTags)
     {
-        CheckForRequired(*SourceTags, SourceRequiredTags);
+        CheckForRequired(*SourceTags, AllSourceRequiredTags);
     }
     if (TargetTags)
     {
-        CheckForRequired(*TargetTags, TargetRequiredTags);
+        CheckForRequired(*TargetTags, AllTargetRequiredTags);
     }
 
     // We succeeded if there were no blocked tags and no missing required tags

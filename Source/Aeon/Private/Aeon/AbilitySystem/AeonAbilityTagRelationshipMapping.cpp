@@ -32,10 +32,13 @@ void UAeonAbilityTagRelationshipMapping::GetAbilityTagsToBlockAndCancel(
     }
 }
 
-void UAeonAbilityTagRelationshipMapping::GetActivationRequiredAndBlockedTags(
-    const FGameplayTagContainer& AbilityTags,
-    FGameplayTagContainer& OutActivationRequiredTags,
-    FGameplayTagContainer& OutActivationBlockedTags) const
+void UAeonAbilityTagRelationshipMapping::GetAdditionalTagRequirements(const FGameplayTagContainer& AbilityTags,
+                                                                      FGameplayTagContainer& OutActivationRequiredTags,
+                                                                      FGameplayTagContainer& OutActivationBlockedTags,
+                                                                      FGameplayTagContainer& OutSourceRequiredTags,
+                                                                      FGameplayTagContainer& OutSourceBlockedTags,
+                                                                      FGameplayTagContainer& OutTargetRequiredTags,
+                                                                      FGameplayTagContainer& OutTargetBlockedTags) const
 {
     for (int32 i = 0; i < AbilityTagRelationships.Num(); i++)
     {
@@ -45,6 +48,10 @@ void UAeonAbilityTagRelationshipMapping::GetActivationRequiredAndBlockedTags(
         {
             OutActivationRequiredTags.AppendTags(Tags.ActivationRequiredTags);
             OutActivationBlockedTags.AppendTags(Tags.ActivationBlockedTags);
+            OutSourceRequiredTags.AppendTags(Tags.SourceRequiredTags);
+            OutSourceBlockedTags.AppendTags(Tags.SourceBlockedTags);
+            OutTargetRequiredTags.AppendTags(Tags.TargetRequiredTags);
+            OutTargetBlockedTags.AppendTags(Tags.TargetBlockedTags);
         }
     }
 }
