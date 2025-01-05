@@ -33,7 +33,7 @@ class AEON_API UAeonAbilitySystemComponent : public UAbilitySystemComponent
      * So that we can define additional activation tag requirement tags, blocking and canceling tags.
      * See {@link UAeonAbilityTagRelationshipMapping} for further details.
      */
-    UPROPERTY()
+    UPROPERTY(EditDefaultsOnly, Category = "Aeon|Ability")
     TObjectPtr<UAeonAbilityTagRelationshipMapping> TagRelationshipMapping;
 
 public:
