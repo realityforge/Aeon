@@ -38,7 +38,7 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
             }
             else
             {
-                AEON_VERBOSE_ALOG("TryActivateAbilityByTag invoked with tag '%s' found no "
+                AEON_VERBOSE_ALOG("TryActivateRandomSingleAbilityByTag invoked with tag '%s' found no "
                                   "matching AbilitySpecs on actor '%s'",
                                   *AbilityTag.GetTagName().ToString(),
                                   *AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
@@ -47,14 +47,14 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
         }
         else
         {
-            AEON_VERBOSE_ALOG("TryActivateAbilityByTag invoked with tag '%s' on invalid actor",
+            AEON_VERBOSE_ALOG("TryActivateRandomSingleAbilityByTag invoked with tag '%s' on invalid actor",
                               *AbilityTag.GetTagName().ToString());
             return false;
         }
     }
     else
     {
-        AEON_VERBOSE_ALOG("TryActivateAbilityByTag invoked with empty tag on actor '%s'",
+        AEON_VERBOSE_ALOG("TryActivateRandomSingleAbilityByTag invoked with empty tag on actor '%s'",
                           *AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
         return false;
     }
