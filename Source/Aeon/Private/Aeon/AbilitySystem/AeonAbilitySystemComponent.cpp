@@ -13,6 +13,7 @@
  */
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
 #include "Aeon/AbilitySystem/AeonAbilityTagRelationshipMapping.h"
+#include "Aeon/Logging.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySystemComponent)
 
@@ -25,7 +26,19 @@
 void UAeonAbilitySystemComponent::SetTagRelationshipMapping(
     UAeonAbilityTagRelationshipMapping* InTagRelationshipMapping)
 {
+    UE_LOG(AeonTagRelationship,
+           Log,
+           TEXT("TagRelationshipMapping changed to %s for AeonAbilitySystemComponent %s"),
+           *GetNameSafe(InTagRelationshipMapping),
+           *GetNameSafe(GetOwnerActor()));
     TagRelationshipMapping = InTagRelationshipMapping;
+}
+
+static FString ToTagDeltaDiffString(const FGameplayTagContainer& AllTags, const FGameplayTagContainer& OriginalTags)
+{
+    FGameplayTagContainer Tags(AllTags);
+    Tags.RemoveTags(OriginalTags);
+    return Tags.ToString();
 }
 
 void UAeonAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags,
@@ -40,6 +53,16 @@ void UAeonAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplay
         FGameplayTagContainer AllBlockTags = BlockTags;
         FGameplayTagContainer AllCancelTags = CancelTags;
         TagRelationshipMapping->GetAbilityTagsToBlockAndCancel(AbilityTags, AllBlockTags, AllCancelTags);
+
+        UE_LOG(AeonTagRelationship,
+               Verbose,
+               TEXT("ApplyAbilityBlockAndCancelTags for ability defined "
+                    "by tags %s added %s block tags and %s cancel tags for actor '%s'"),
+               *AbilityTags.ToString(),
+               *ToTagDeltaDiffString(AllBlockTags, BlockTags),
+               *ToTagDeltaDiffString(AllCancelTags, CancelTags),
+               *GetNameSafe(GetOwnerActor()));
+
         Super::ApplyAbilityBlockAndCancelTags(AbilityTags,
                                               RequestingAbility,
                                               bEnableBlockTags,
@@ -68,6 +91,14 @@ void UAeonAbilitySystemComponent::GetRequiredAndBlockedActivationTags(
         TagRelationshipMapping->GetActivationRequiredAndBlockedTags(AbilityTags,
                                                                     OutActivationRequiredTags,
                                                                     OutActivationBlockedTags);
+        UE_LOG(AeonTagRelationship,
+               Verbose,
+               TEXT("GetRequiredAndBlockedActivationTags for ability defined "
+                    "by tags %s added %s activation required tags and %s activation blocked tags for actor '%s'"),
+               *AbilityTags.ToString(),
+               *OutActivationRequiredTags.ToString(),
+               *OutActivationBlockedTags.ToString(),
+               *GetNameSafe(GetOwnerActor()));
     }
 }
 

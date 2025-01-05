@@ -25,6 +25,14 @@
 // Log category to use within the Aeon plugin
 AEON_API DECLARE_LOG_CATEGORY_EXTERN(Aeon, Display, All);
 
+// Log categories that are primarily used when debugging or understanding Aeon interactions and
+// are not expected to be used at runtime.
+#ifdef AEON_DEBUG
+AEON_API DECLARE_LOG_CATEGORY_EXTERN(AeonTagRelationship, Display, All);
+#else
+AEON_API DECLARE_LOG_CATEGORY_EXTERN(AeonTagRelationship, Display, Warning);
+#endif
+
 // A simplified set of macros for logging
 
 #define AEON_LOG(Verbosity, Format, ...)                \
