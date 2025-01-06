@@ -20,6 +20,79 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySet)
 
+#if WITH_EDITOR
+void FAeonGameplayAbilityEntry::InitTitleProperty()
+{
+    if (Ability)
+    {
+        const auto Package = Ability->GetOuterUPackage();
+        check(Package);
+        if (Ability->IsInBlueprint())
+        {
+            Title = FString::Printf(TEXT("%s [%d] %s"),
+                                    *FPackageName::GetShortName(Package),
+                                    Level,
+                                    InputTag.IsValid() ? *InputTag.ToString() : TEXT(""));
+        }
+        else
+        {
+            Title = FString::Printf(TEXT("%s.%s [%d] %s"),
+                                    *FPackageName::GetShortName(Package),
+                                    *Ability->GetName(),
+                                    Level,
+                                    InputTag.IsValid() ? *InputTag.ToString() : TEXT(""));
+        }
+    }
+    else
+    {
+        Title = TEXT("None");
+    }
+}
+
+void FAeonGameplayEffectEntry::InitTitleProperty()
+{
+    if (Effect)
+    {
+        const auto Package = Effect->GetOuterUPackage();
+        check(Package);
+        if (Effect->IsInBlueprint())
+        {
+            Title = FString::Printf(TEXT("%s [%d]"), *FPackageName::GetShortName(Package), Level);
+        }
+        else
+        {
+            Title =
+                FString::Printf(TEXT("%s.%s [%d]"), *FPackageName::GetShortName(Package), *Effect->GetName(), Level);
+        }
+    }
+    else
+    {
+        Title = TEXT("None");
+    }
+}
+
+void FAeonAttributeSetEntry::InitTitleProperty()
+{
+    if (AttributeSet)
+    {
+        const auto Package = AttributeSet->GetOuterUPackage();
+        check(Package);
+        if (AttributeSet->IsInBlueprint())
+        {
+            Title = FPackageName::GetShortName(Package);
+        }
+        else
+        {
+            Title = FString::Printf(TEXT("%s.%s"), *FPackageName::GetShortName(Package), *AttributeSet->GetName());
+        }
+    }
+    else
+    {
+        Title = TEXT("None");
+    }
+}
+#endif
+
 void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
 {
     if (AbilitySystemComponent)
@@ -197,4 +270,71 @@ EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Conte
 
     return Result;
 }
+
+void UAeonAbilitySet::UpdateAbilityTitles()
+{
+    for (int32 Index = 0; Index < Abilities.Num(); ++Index)
+    {
+        if (auto& Ability = Abilities[Index]; IsValid(Ability.Ability))
+        {
+            Ability.InitTitleProperty();
+        }
+    }
+}
+
+void UAeonAbilitySet::UpdateEffectTitles()
+{
+    for (int32 Index = 0; Index < Effects.Num(); ++Index)
+    {
+        if (auto& Effect = Effects[Index]; IsValid(Effect.Effect))
+        {
+            Effect.InitTitleProperty();
+        }
+    }
+}
+
+void UAeonAbilitySet::UpdateAttributeSetTitles()
+{
+    for (int32 Index = 0; Index < AttributeSets.Num(); ++Index)
+    {
+        if (auto& AttributeSet = AttributeSets[Index]; IsValid(AttributeSet.AttributeSet))
+        {
+            AttributeSet.InitTitleProperty();
+        }
+    }
+}
+
+void UAeonAbilitySet::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    if (PropertyChangedEvent.Property)
+    {
+        // ReSharper disable once CppTooWideScopeInitStatement
+        const auto PropertyName = PropertyChangedEvent.Property->GetFName();
+
+        if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, Abilities)) == PropertyName)
+        {
+            UpdateAbilityTitles();
+        }
+        else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, Effects)) == PropertyName)
+        {
+            UpdateEffectTitles();
+        }
+        else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, AttributeSets)) == PropertyName)
+        {
+            UpdateAttributeSetTitles();
+        }
+    }
+}
 #endif
+
+void UAeonAbilitySet::PostLoad()
+{
+    Super::PostLoad();
+#if WITH_EDITOR
+    UpdateAbilityTitles();
+    UpdateEffectTitles();
+    UpdateAttributeSetTitles();
+#endif
+}

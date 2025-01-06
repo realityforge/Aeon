@@ -18,6 +18,7 @@
 
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
+class UAeonAbilitySet;
 class UAbilitySystemComponent;
 class UAeonGameplayAbility;
 class UAttributeSet;
@@ -31,6 +32,14 @@ struct FAeonGameplayAbilityEntry
 {
     GENERATED_BODY()
 
+#if WITH_EDITORONLY_DATA
+    friend UAeonAbilitySet;
+
+    /** The transient title property to use in the editor. */
+    UPROPERTY(VisibleDefaultsOnly, Transient, meta = (EditCondition = "false", EditConditionHides))
+    FString Title;
+#endif
+
     /** The Gameplay Ability to grant. */
     UPROPERTY(EditDefaultsOnly, meta = (AllowAbstract = "false"))
     TSubclassOf<UAeonGameplayAbility> Ability{ nullptr };
@@ -42,6 +51,15 @@ struct FAeonGameplayAbilityEntry
     /** Tag indicating input that can trigger the Ability. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input"))
     FGameplayTag InputTag{ FGameplayTag::EmptyTag };
+
+#if WITH_EDITOR
+
+private:
+    /**
+     * Derive the transient title property for use in the editor.
+     */
+    void InitTitleProperty();
+#endif
 };
 
 /**
@@ -52,6 +70,14 @@ struct FAeonGameplayEffectEntry
 {
     GENERATED_BODY()
 
+#if WITH_EDITORONLY_DATA
+    friend UAeonAbilitySet;
+
+    /** The transient title property to use in the editor. */
+    UPROPERTY(VisibleDefaultsOnly, Transient, meta = (EditCondition = "false", EditConditionHides))
+    FString Title;
+#endif
+
     /** The Gameplay Effect to grant. */
     UPROPERTY(EditDefaultsOnly, meta = (AllowAbstract = "false"))
     TSubclassOf<UGameplayEffect> Effect{ nullptr };
@@ -59,6 +85,15 @@ struct FAeonGameplayEffectEntry
     /** The Base Level of the effect to grant. This may be modified during when granted to an ASC. */
     UPROPERTY(EditDefaultsOnly)
     int32 Level{ 1 };
+
+#if WITH_EDITOR
+
+private:
+    /**
+     * Derive the transient title property for use in the editor.
+     */
+    void InitTitleProperty();
+#endif
 };
 
 /**
@@ -69,12 +104,27 @@ struct FAeonAttributeSetEntry
 {
     GENERATED_BODY()
 
+#if WITH_EDITORONLY_DATA
+    friend UAeonAbilitySet;
+
+    /** The transient title property to use in the editor. */
+    UPROPERTY(VisibleDefaultsOnly, Transient, meta = (EditCondition = "false", EditConditionHides))
+    FString Title;
+#endif
+
     /** The AttributeSet to grant. */
     UPROPERTY(EditDefaultsOnly, meta = (AllowAbstract = "false"))
     TSubclassOf<UAttributeSet> AttributeSet{ nullptr };
-};
 
-class UAeonAbilitySet;
+#if WITH_EDITOR
+
+private:
+    /**
+     * Derive the transient title property for use in the editor.
+     */
+    void InitTitleProperty();
+#endif
+};
 
 /**
  * A collection of handles and references as a result of granting a UAeonAbilitySet to an ASC.
@@ -133,15 +183,15 @@ class UAeonAbilitySet final : public UPrimaryDataAsset
     GENERATED_BODY()
 
     /** Gameplay Abilities to grant to the ASC when the AeonAbilitySet is granted to the ASC. */
-    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = Ability))
+    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "Title"))
     TArray<FAeonGameplayAbilityEntry> Abilities;
 
     /** Gameplay Effects to grant to the ASC when the AeonAbilitySet is granted to the ASC. */
-    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = Effect))
+    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "Title"))
     TArray<FAeonGameplayEffectEntry> Effects;
 
     /** AttributeSets to grant to the ASC when the AeonAbilitySet is granted to the ASC. */
-    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = AttributeSet))
+    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "Title"))
     TArray<FAeonAttributeSetEntry> AttributeSets;
 
 public:
@@ -165,4 +215,31 @@ public:
     virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 #endif // WITH_EDITOR
 #pragma endregion
+
+#if WITH_EDITOR
+
+private:
+    /**
+     * Update the titles for abilities to improve editor experience.
+     */
+    void UpdateAbilityTitles();
+
+    /**
+     * Update the titles for effects to improve editor experience.
+     */
+    void UpdateEffectTitles();
+
+    /**
+     * Update the titles for AttributeSets to improve editor experience.
+     */
+    void UpdateAttributeSetTitles();
+
+public:
+    /**
+     * Updates the titles of abilities, effects, and attribute sets.
+     */
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif // WITH_EDITOR
+
+    virtual void PostLoad() override;
 };
