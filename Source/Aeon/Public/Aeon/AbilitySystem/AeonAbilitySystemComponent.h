@@ -31,7 +31,7 @@ class AEON_API UAeonAbilitySystemComponent : public UAbilitySystemComponent
      * An optional structure used to explicitly define relationships between tags.
      *
      * So that we can define additional activation tag requirement tags, blocking and canceling tags.
-     * See {@link UAeonAbilityTagRelationshipMapping} for further details.
+     * See @link UAeonAbilityTagRelationshipMapping @endlink for further details.
      */
     UPROPERTY(EditDefaultsOnly, Category = "Aeon|Ability")
     TObjectPtr<UAeonAbilityTagRelationshipMapping> TagRelationshipMapping;
