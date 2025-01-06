@@ -94,7 +94,11 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
                 const auto CDO = Ability.Ability->GetDefaultObject<UAeonGameplayAbility>();
                 FGameplayAbilitySpec AbilitySpec(CDO, Ability.Level + LevelDelta);
                 AbilitySpec.SourceObject = SourceObject;
-                AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability.InputTag);
+                if (Ability.InputTag.IsValid())
+                {
+                    // Only add tag if it is valid
+                    AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability.InputTag);
+                }
 
                 // ReSharper disable once CppTooWideScopeInitStatement
                 const auto Handle = AbilitySystemComponent->GiveAbility(AbilitySpec);
