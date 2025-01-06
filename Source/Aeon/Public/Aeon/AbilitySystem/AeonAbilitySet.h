@@ -58,7 +58,7 @@ struct FAeonGameplayEffectEntry
 
     /** The Base Level of the effect to grant. This may be modified during when granted to an ASC. */
     UPROPERTY(EditDefaultsOnly)
-    float Level{ 1.f };
+    int32 Level{ 1 };
 };
 
 /**
