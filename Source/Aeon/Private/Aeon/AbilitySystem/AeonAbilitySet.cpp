@@ -159,6 +159,25 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
             OutGrantedHandles->AbilitySystemComponent = AbilitySystemComponent;
         }
 
+        for (int32 Index = 0; Index < AttributeSets.Num(); ++Index)
+        {
+            // ReSharper disable once CppUseStructuredBinding
+            if (const auto& Entry = AttributeSets[Index]; IsValid(Entry.AttributeSet))
+            {
+                const auto Outer = AbilitySystemComponent->GetOwner();
+                const auto AttributeSet = NewObject<UAttributeSet>(Outer, Entry.AttributeSet);
+                AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
+                if (OutGrantedHandles)
+                {
+                    OutGrantedHandles->AttributeSets.Add(AttributeSet);
+                }
+            }
+            else
+            {
+                AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at  AttributeSets[%d]", *GetNameSafe(this), Index);
+            }
+        }
+
         for (int32 Index = 0; Index < Abilities.Num(); ++Index)
         {
             // ReSharper disable once CppUseStructuredBinding
@@ -204,24 +223,6 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
             else
             {
                 AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at Effects[%d]", *GetNameSafe(this), Index);
-            }
-        }
-
-        for (int32 Index = 0; Index < AttributeSets.Num(); ++Index)
-        {
-            if (const auto& Entry = AttributeSets[Index]; IsValid(Entry.AttributeSet))
-            {
-                const auto Outer = AbilitySystemComponent->GetOwner();
-                const auto AttributeSet = NewObject<UAttributeSet>(Outer, Entry.AttributeSet);
-                AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
-                if (OutGrantedHandles)
-                {
-                    OutGrantedHandles->AttributeSets.Add(AttributeSet);
-                }
-            }
-            else
-            {
-                AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at  AttributeSets[%d]", *GetNameSafe(this), Index);
             }
         }
     }

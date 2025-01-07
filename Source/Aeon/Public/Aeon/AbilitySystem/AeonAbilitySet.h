@@ -200,6 +200,14 @@ public:
     /**
      * Grant the contained abilities, effects and attributes to the specified ASC.
      *
+     * Note that the order in which they are granted is:
+     * - AttributeSets in the order they appear in the array, then
+     * - Abilities in the order they appear in the array, and finally
+     * - Effects in the order they appear in the array
+     *
+     * The ordering is to allow effects to modify attributes, and activate-on-given abilities to prepare other systems
+     * for effects activation.
+     *
      * @param AbilitySystemComponent The ASC to grant the abilities, effects and attributes to.
      * @param OutGrantedHandles The handles that can be used to tak away anything that was granted. May pass nullptr.
      * @param LevelDelta The Delta to apply to Level of effects and abilities before granting them to the ASC.
