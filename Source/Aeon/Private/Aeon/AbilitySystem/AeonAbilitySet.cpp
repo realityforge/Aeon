@@ -162,15 +162,15 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
         for (int32 Index = 0; Index < Abilities.Num(); ++Index)
         {
             // ReSharper disable once CppUseStructuredBinding
-            if (const auto& Ability = Abilities[Index]; IsValid(Ability.Ability))
+            if (const auto& Entry = Abilities[Index]; IsValid(Entry.Ability))
             {
-                const auto CDO = Ability.Ability->GetDefaultObject<UAeonGameplayAbility>();
-                FGameplayAbilitySpec AbilitySpec(CDO, Ability.Level + LevelDelta);
+                const auto CDO = Entry.Ability->GetDefaultObject<UAeonGameplayAbility>();
+                FGameplayAbilitySpec AbilitySpec(CDO, Entry.Level + LevelDelta);
                 AbilitySpec.SourceObject = SourceObject;
-                if (Ability.InputTag.IsValid())
+                if (Entry.InputTag.IsValid())
                 {
                     // Only add tag if it is valid
-                    AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability.InputTag);
+                    AbilitySpec.GetDynamicSpecSourceTags().AddTag(Entry.InputTag);
                 }
 
                 // ReSharper disable once CppTooWideScopeInitStatement
@@ -189,11 +189,11 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
         for (int32 Index = 0; Index < Effects.Num(); ++Index)
         {
             // ReSharper disable once CppUseStructuredBinding
-            if (const auto& Effect = Effects[Index]; IsValid(Effect.Effect))
+            if (const auto& Entry = Effects[Index]; IsValid(Entry.Effect))
             {
-                const auto CDO = Effect.Effect->GetDefaultObject<UGameplayEffect>();
+                const auto CDO = Entry.Effect->GetDefaultObject<UGameplayEffect>();
                 auto EffectContext = AbilitySystemComponent->MakeEffectContext();
-                const float EffectLevel = Effect.Level + LevelDelta;
+                const float EffectLevel = Entry.Level + LevelDelta;
                 // ReSharper disable once CppTooWideScopeInitStatement
                 const auto Handle = AbilitySystemComponent->ApplyGameplayEffectToSelf(CDO, EffectLevel, EffectContext);
                 if (OutGrantedHandles && Handle.IsValid())
