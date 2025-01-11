@@ -174,7 +174,7 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
             }
             else
             {
-                AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at  AttributeSets[%d]", *GetNameSafe(this), Index);
+                AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at AttributeSets[%d]", *GetNameSafe(this), Index);
             }
         }
 
