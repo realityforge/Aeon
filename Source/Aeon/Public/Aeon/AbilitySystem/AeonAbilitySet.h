@@ -144,6 +144,10 @@ private:
     UPROPERTY()
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent{ nullptr };
 
+    /** Loose Gameplay Tags granted. */
+    UPROPERTY(EditDefaultsOnly)
+    FGameplayTagContainer Tags;
+
     /** The SpecHandle instances resulting from successfully granting Gameplay Abilities. */
     UPROPERTY()
     TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
@@ -181,6 +185,10 @@ UCLASS(BlueprintType, Const)
 class UAeonAbilitySet final : public UPrimaryDataAsset
 {
     GENERATED_BODY()
+
+    /** Loose Gameplay Tags to add to the ASC when the AeonAbilitySet is granted to the ASC. */
+    UPROPERTY(EditDefaultsOnly)
+    FGameplayTagContainer Tags;
 
     /** Gameplay Abilities to grant to the ASC when the AeonAbilitySet is granted to the ASC. */
     UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "Title"))

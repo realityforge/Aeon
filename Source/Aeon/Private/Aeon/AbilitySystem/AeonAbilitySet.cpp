@@ -120,9 +120,12 @@ void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
                 AbilitySystemComponent->RemoveSpawnedAttribute(AttributeSet);
             }
 
+            AbilitySystemComponent->RemoveLooseGameplayTags(Tags);
+
             AbilitySpecHandles.Reset();
             EffectHandles.Reset();
             AttributeSets.Reset();
+            Tags.Reset();
             AbilitySystemComponent = nullptr;
         }
         else
@@ -157,6 +160,25 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
         if (OutGrantedHandles)
         {
             OutGrantedHandles->AbilitySystemComponent = AbilitySystemComponent;
+        }
+
+        if (!Tags.IsEmpty())
+        {
+            if (UE_LOG_ACTIVE(Aeon, Error))
+            {
+                for (int32 Index = 0; Index < Tags.Num(); ++Index)
+                {
+                    if (const auto Tag = Tags.GetByIndex(Index); !Tag.IsValid())
+                    {
+                        AEON_ERROR_ALOG("AbilitySet '%s' has invalid tag at Tags[%d]", *GetNameSafe(this), Index);
+                    }
+                }
+            }
+            AbilitySystemComponent->AddLooseGameplayTags(Tags);
+            if (OutGrantedHandles)
+            {
+                OutGrantedHandles->Tags = Tags;
+            }
         }
 
         for (int32 Index = 0; Index < AttributeSets.Num(); ++Index)
@@ -236,6 +258,14 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
 EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Context) const
 {
     auto Result = CombineDataValidationResults(Super::IsDataValid(Context), EDataValidationResult::Valid);
+    for (int32 Index = 0; Index < Tags.Num(); ++Index)
+    {
+        if (const auto Tag = Tags.GetByIndex(Index); !Tag.IsValid())
+        {
+            Context.AddError(FText::FromString(FString::Printf(TEXT("Tags[%d] is an invalid tag"), Index)));
+            Result = EDataValidationResult::Invalid;
+        }
+    }
 
     for (int32 Index = 0; Index < Abilities.Num(); ++Index)
     {
