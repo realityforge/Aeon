@@ -261,6 +261,7 @@ EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Conte
 
     for (int32 Index = 0; Index < AttributeSets.Num(); ++Index)
     {
+        // ReSharper disable once CppUseStructuredBinding
         if (const auto& Entry = AttributeSets[Index]; !IsValid(Entry.AttributeSet))
         {
             Context.AddError(FText::FromString(
