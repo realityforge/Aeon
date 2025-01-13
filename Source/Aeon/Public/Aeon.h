@@ -16,7 +16,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FAeonModule : public IModuleInterface
+class FAeonModule final : public IModuleInterface
 {
 public:
     /** IModuleInterface implementation */
