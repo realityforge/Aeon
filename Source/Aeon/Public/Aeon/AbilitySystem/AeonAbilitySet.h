@@ -187,7 +187,7 @@ private:
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent{ nullptr };
 
     /** Loose Gameplay Tags granted. */
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY()
     FGameplayTagContainer Tags;
 
     /** The SpecHandle instances resulting from successfully granting Gameplay Abilities. */
