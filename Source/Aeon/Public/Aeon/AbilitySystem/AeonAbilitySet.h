@@ -46,7 +46,7 @@ struct FAeonGameplayAbilityEntry
     UPROPERTY(EditDefaultsOnly, meta = (AllowAbstract = "false"))
     TSubclassOf<UAeonGameplayAbility> Ability{ nullptr };
 
-    /** The Base Level of the ability to grant. This may be modified during when granted to an ASC. */
+    /** The Base Level of the ability to grant. The Level may be modified when granted to an ASC. */
     UPROPERTY(EditDefaultsOnly)
     int32 Level{ 1 };
 
@@ -84,7 +84,7 @@ struct FAeonGameplayEffectEntry
     UPROPERTY(EditDefaultsOnly, meta = (AllowAbstract = "false"))
     TSubclassOf<UGameplayEffect> Effect{ nullptr };
 
-    /** The Base Level of the effect to grant. This may be modified during when granted to an ASC. */
+    /** The Base Level of the effect to grant. The Level may be modified when granted to an ASC. */
     UPROPERTY(EditDefaultsOnly)
     int32 Level{ 1 };
 
