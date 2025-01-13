@@ -91,6 +91,11 @@ void FAeonAttributeSetEntry::InitTitleProperty()
         Title = TEXT("None");
     }
 }
+
+void FAeonAttributeInitializer::InitTitleProperty()
+{
+    Title = FString::Printf(TEXT("%s [%d] = %.2f"), *Attribute.GetName(), Level, Value.GetValueAtLevel(Level));
+}
 #endif
 
 void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
@@ -247,6 +252,35 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
                 AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at Effects[%d]", *GetNameSafe(this), Index);
             }
         }
+
+        for (int32 Index = 0; Index < AttributeValues.Num(); ++Index)
+        {
+            // ReSharper disable once CppUseStructuredBinding
+            if (const auto& Entry = AttributeValues[Index]; Entry.Attribute.IsValid() && Entry.Value.IsValid())
+            {
+                // ReSharper disable once CppTooWideScopeInitStatement
+                const FGameplayAttribute& Attribute = Entry.Attribute;
+                if (AbilitySystemComponent->HasAttributeSetForAttribute(Attribute))
+                {
+                    const float Level = Entry.Level + LevelDelta;
+                    AbilitySystemComponent->SetNumericAttributeBase(Attribute, Entry.Value.GetValueAtLevel(Level));
+                }
+                else
+                {
+                    AEON_ERROR_ALOG("AbilitySet '%s' has an attribute initializer '%s' for an attribute from an "
+                                    "AttributeSet '%s' that is not granted to the AbilitySystemComponent "
+                                    "at AttributeValues[%d]",
+                                    *GetNameSafe(this),
+                                    *Attribute.GetName(),
+                                    *Attribute.GetAttributeSetClass()->GetName(),
+                                    Index);
+                }
+            }
+            else
+            {
+                AEON_ERROR_ALOG("AbilitySet '%s' has invalid value at AttributeValues[%d]", *GetNameSafe(this), Index);
+            }
+        }
     }
     else
     {
@@ -300,6 +334,49 @@ EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Conte
         }
     }
 
+    for (int32 Index = 0; Index < AttributeValues.Num(); ++Index)
+    {
+        // ReSharper disable once CppUseStructuredBinding
+        // ReSharper disable once CppTooWideScopeInitStatement
+        const auto& Entry = AttributeValues[Index];
+        if (!Entry.Attribute.IsValid())
+        {
+            Context.AddError(FText::FromString(
+                FString::Printf(TEXT("AttributeValues[%d].Attribute references an invalid value"), Index)));
+            Result = EDataValidationResult::Invalid;
+        }
+        if (!Entry.Value.IsValid())
+        {
+            Context.AddError(FText::FromString(
+                FString::Printf(TEXT("AttributeValues[%d].Value references an invalid value"), Index)));
+            Result = EDataValidationResult::Invalid;
+        }
+        bool bAttributeFound = false;
+
+        for (int32 AttributeSetIndex = 0; AttributeSetIndex < AttributeSets.Num(); ++AttributeSetIndex)
+        {
+            // ReSharper disable once CppUseStructuredBinding
+            // ReSharper disable once CppTooWideScopeInitStatement
+            const auto& AttributeSetEntry = AttributeSets[AttributeSetIndex];
+            if (IsValid(AttributeSetEntry.AttributeSet)
+                && AttributeSetEntry.AttributeSet.Get() == Entry.Attribute.GetAttributeSetClass())
+            {
+                bAttributeFound = true;
+            }
+        }
+        if (!bAttributeFound)
+        {
+            Context.AddError(
+                FText::FromString(FString::Printf(TEXT("AttributeValues[%d].Attribute named '%s' references an "
+                                                       "AttributeSet '%s' that is not "
+                                                       "defined in the AttributeSets property"),
+                                                  Index,
+                                                  *Entry.Attribute.GetName(),
+                                                  *Entry.Attribute.GetAttributeSetClass()->GetName())));
+            Result = EDataValidationResult::Invalid;
+        }
+    }
+
     return Result;
 }
 
@@ -336,6 +413,17 @@ void UAeonAbilitySet::UpdateAttributeSetTitles()
     }
 }
 
+void UAeonAbilitySet::UpdateAttributeValueTitles()
+{
+    for (int32 Index = 0; Index < AttributeValues.Num(); ++Index)
+    {
+        if (auto& AttributeValue = AttributeValues[Index]; AttributeValue.Attribute.IsValid())
+        {
+            AttributeValue.InitTitleProperty();
+        }
+    }
+}
+
 void UAeonAbilitySet::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -357,6 +445,10 @@ void UAeonAbilitySet::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
         {
             UpdateAttributeSetTitles();
         }
+        else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, AttributeValues)) == PropertyName)
+        {
+            UpdateAttributeValueTitles();
+        }
     }
 }
 #endif
@@ -368,5 +460,6 @@ void UAeonAbilitySet::PostLoad()
     UpdateAbilityTitles();
     UpdateEffectTitles();
     UpdateAttributeSetTitles();
+    UpdateAttributeValueTitles();
 #endif
 }

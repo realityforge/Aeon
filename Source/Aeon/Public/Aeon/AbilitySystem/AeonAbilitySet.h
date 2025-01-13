@@ -13,7 +13,9 @@
  */
 #pragma once
 
+#include "AttributeSet.h"
 #include "GameplayTagContainer.h"
+#include "ScalableFloat.h"
 #include "AeonAbilitySet.generated.h"
 
 struct FActiveGameplayEffectHandle;
@@ -126,6 +128,46 @@ private:
 #endif
 };
 
+USTRUCT(Blueprintable)
+struct FAeonAttributeInitializer
+{
+    GENERATED_BODY()
+
+#if WITH_EDITORONLY_DATA
+    friend UAeonAbilitySet;
+
+    /** The transient title property to use in the editor. */
+    UPROPERTY(VisibleDefaultsOnly, Transient, meta = (EditCondition = "false", EditConditionHides))
+    FString Title;
+#endif
+
+    /**
+     * The attribute to initialize.
+     * The Attribute is expected to be defined in a FAeonAttributeSetEntry in the same AeonAbilitySet.
+     */
+    UPROPERTY(EditDefaultsOnly)
+    FGameplayAttribute Attribute;
+
+    /** The Base Level of the Attribute. The Level may be modified when granted to an ASC. */
+    UPROPERTY(EditDefaultsOnly)
+    int32 Level{ 1 };
+
+    /**
+     * The scaled value used to assign the attribute.
+     */
+    UPROPERTY(EditDefaultsOnly)
+    FScalableFloat Value;
+
+#if WITH_EDITOR
+
+private:
+    /**
+     * Derive the transient title property for use in the editor.
+     */
+    void InitTitleProperty();
+#endif
+};
+
 /**
  * A collection of handles and references as a result of granting a UAeonAbilitySet to an ASC.
  *
@@ -202,6 +244,10 @@ class UAeonAbilitySet final : public UPrimaryDataAsset
     UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "Title"))
     TArray<FAeonAttributeSetEntry> AttributeSets;
 
+    /** Attribute base values to initialize on the ASC when the AeonAbilitySet is granted to the ASC. */
+    UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "Title"))
+    TArray<FAeonAttributeInitializer> AttributeValues;
+
 public:
     explicit UAeonAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
@@ -249,6 +295,11 @@ private:
      * Update the titles for AttributeSets to improve editor experience.
      */
     void UpdateAttributeSetTitles();
+
+    /**
+     * Update the titles for AttributeValues to improve editor experience.
+     */
+    void UpdateAttributeValueTitles();
 
 public:
     /**
