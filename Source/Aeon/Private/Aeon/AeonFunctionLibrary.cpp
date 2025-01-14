@@ -38,10 +38,11 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
             }
             else
             {
-                AEON_VERBOSE_ALOG("TryActivateRandomSingleAbilityByTag invoked with tag '%s' found no "
-                                  "matching AbilitySpecs on actor '%s'",
-                                  *AbilityTag.GetTagName().ToString(),
-                                  *AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
+                AEON_VERY_VERBOSE_ALOG("TryActivateRandomSingleAbilityByTag invoked with tag '%s' found no "
+                                       "matching 'Activatable' GameplayAbilitySpecs on actor '%s'. Either no such "
+                                       "Ability exists or the matching abilities are blocked or missing required tags",
+                                       *AbilityTag.GetTagName().ToString(),
+                                       *AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
                 return false;
             }
         }
