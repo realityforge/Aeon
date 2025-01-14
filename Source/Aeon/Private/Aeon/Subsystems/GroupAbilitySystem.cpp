@@ -60,14 +60,9 @@ bool UGroupAbilitySystem::IsAbilitySystemComponentRegistered(const FGameplayTag 
                                                              UAbilitySystemComponent* AbilitySystemComponent,
                                                              const bool bImplicit) const
 {
-    if (const auto Value = Registry.Find(GroupTag); Value && Value->Get())
-    {
-        return Value->Get()->IsAbilitySystemComponentRegistered(AbilitySystemComponent, bImplicit);
-    }
-    else
-    {
-        return false;
-    }
+    const auto Value = Registry.Find(GroupTag);
+    return Value && Value->Get() ? Value->Get()->IsAbilitySystemComponentRegistered(AbilitySystemComponent, bImplicit)
+                                 : false;
 }
 
 void UGroupAbilitySystem::RegisterAbilitySystemComponent(const FGameplayTag GroupTag,
