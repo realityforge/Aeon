@@ -74,6 +74,7 @@ void UGroupAbilitySystem::RegisterAbilitySystemComponent(const FGameplayTag Grou
     if (ensureAlways(GroupTag.IsValid()))
     {
         FindOrCreateGroupRegistry(GroupTag).RegisterAbilitySystemComponent(AbilitySystemComponent);
+        AEON_VERY_VERBOSE_ALOG("RegisterAbilitySystemComponent invoked with GroupTag %s", *GroupTag.ToString());
     }
     else
     {
@@ -90,6 +91,7 @@ void UGroupAbilitySystem::UnregisterAbilitySystemComponent(const FGameplayTag Gr
     if (ensureAlways(GroupTag.IsValid()))
     {
         FindOrCreateGroupRegistry(GroupTag).UnregisterAbilitySystemComponent(AbilitySystemComponent);
+        AEON_VERY_VERBOSE_ALOG("UnregisterAbilitySystemComponent invoked with GroupTag %s", *GroupTag.ToString());
     }
     else
     {
