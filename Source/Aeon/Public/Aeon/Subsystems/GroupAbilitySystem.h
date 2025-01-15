@@ -18,6 +18,7 @@
 #include "Templates/SubclassOf.h"
 #include "GroupAbilitySystem.generated.h"
 
+class UAbilitySystemComponent;
 class UGroupAbilitySystemComponentRegistry;
 class UGameplayAbility;
 class UGameplayEffect;
