@@ -48,6 +48,12 @@ class AEON_API UAeonGameplayAbility : public UGameplayAbility
     EAeonAbilityActivationPolicy AbilityActivationPolicy{ EAeonAbilityActivationPolicy::OnTriggered };
 
 protected:
+    FORCEINLINE EAeonAbilityActivationPolicy GetAbilityActivationPolicy() const { return AbilityActivationPolicy; }
+    FORCEINLINE void SetAbilityActivationPolicy(const EAeonAbilityActivationPolicy InAbilityActivationPolicy)
+    {
+        AbilityActivationPolicy = InAbilityActivationPolicy;
+    }
+
     //~Begin UGameplayAbility Interface
     virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
                             const FGameplayAbilityActorInfo* ActorInfo,
