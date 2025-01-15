@@ -101,7 +101,9 @@ public:
 
     FORCEINLINE UInputMappingContext* GetDefaultMappingContext() const { return DefaultMappingContext; };
 
+#if WITH_EDITOR
     virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+#endif
 
     template <class UserObject, typename CallbackFunc>
     void BindAbilityInputAction(UEnhancedInputComponent* InputComponent,

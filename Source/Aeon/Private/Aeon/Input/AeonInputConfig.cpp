@@ -28,6 +28,7 @@ const UInputAction* UAeonInputConfig::FindNativeInputActionByTag(const FGameplay
     return nullptr;
 }
 
+#if WITH_EDITOR
 EDataValidationResult UAeonInputConfig::IsDataValid(FDataValidationContext& Context) const
 {
     auto Result = CombineDataValidationResults(Super::IsDataValid(Context), EDataValidationResult::Valid);
@@ -75,3 +76,4 @@ EDataValidationResult UAeonInputConfig::IsDataValid(FDataValidationContext& Cont
     }
     return Result;
 }
+#endif
