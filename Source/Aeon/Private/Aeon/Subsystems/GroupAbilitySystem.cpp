@@ -77,7 +77,7 @@ void UGroupAbilitySystem::RegisterAbilitySystemComponent(const FGameplayTag Grou
     }
     else
     {
-        AEON_ERROR_ALOG("RegisterAbilitySystemComponent invoked with invalid GroupTag %s", *GroupTag.ToString());
+        AEON_ERROR_ALOG("RegisterAbilitySystemComponent invoked with invalid GroupTag");
     }
 }
 
@@ -93,7 +93,7 @@ void UGroupAbilitySystem::UnregisterAbilitySystemComponent(const FGameplayTag Gr
     }
     else
     {
-        AEON_ERROR_ALOG("UnregisterAbilitySystemComponent invoked with invalid GroupTag %s", *GroupTag.ToString());
+        AEON_ERROR_ALOG("UnregisterAbilitySystemComponent invoked with invalid GroupTag");
     }
 }
 
