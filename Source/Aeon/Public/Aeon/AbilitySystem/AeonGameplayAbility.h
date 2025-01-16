@@ -32,7 +32,10 @@ enum class EAeonAbilityActivationPolicy : uint8
      */
     OnTriggered,
 
-    /** Activate the ability when it is given to the Avatar. */
+    /**
+     * Activate the ability when it is given to the Avatar.
+     * Once the ability completes, then remove the ability from the associated ASC.
+     */
     OnGiven
 };
 
