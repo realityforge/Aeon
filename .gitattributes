@@ -16,4 +16,12 @@ LICENSE text=auto eol=native
 *.uplugin text=auto eol=native
 *.uproject text=auto eol=native
 
-*.uasset !text=auto !filter !merge !diff
+*.uasset !text !filter !merge !diff
+*.fbx !text !filter !merge !diff
+*.png !text !filter !merge !diff
+*.mp3 !text !filter !merge !diff
+*.wav !text !filter !merge !diff
+*.xcf !text !filter !merge !diff
+*.jpg !text !filter !merge !diff
+**/*.umap !text !filter !merge !diff
+*.umap !text !filter !merge !diff
