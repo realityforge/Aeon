@@ -47,6 +47,14 @@ class AEON_API UAeonGameplayAbility : public UGameplayAbility
     UPROPERTY(EditDefaultsOnly, Category = "Aeon|Ability")
     EAeonAbilityActivationPolicy AbilityActivationPolicy{ EAeonAbilityActivationPolicy::OnTriggered };
 
+    /** If the AbilityActivationPolicy is OnGiven then activate the ability. */
+    void MaybeActivateOnGivenAbility(const FGameplayAbilityActorInfo* ActorInfo,
+                                     const FGameplayAbilitySpec& Spec) const;
+
+    /** If the AbilityActivationPolicy is OnGiven then remove the ability from the ASC one it completes. */
+    void MaybeClearOnGivenAbility(const FGameplayAbilitySpecHandle Handle,
+                                  const FGameplayAbilityActorInfo* ActorInfo) const;
+
 protected:
     FORCEINLINE EAeonAbilityActivationPolicy GetAbilityActivationPolicy() const { return AbilityActivationPolicy; }
     FORCEINLINE void SetAbilityActivationPolicy(const EAeonAbilityActivationPolicy InAbilityActivationPolicy)

@@ -22,13 +22,7 @@ void UAeonGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorI
 {
     Super::OnGiveAbility(ActorInfo, Spec);
 
-    if (EAeonAbilityActivationPolicy::OnGiven == AbilityActivationPolicy)
-    {
-        if (ActorInfo && !Spec.IsActive())
-        {
-            ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
-        }
-    }
+    MaybeActivateOnGivenAbility(ActorInfo, Spec);
 }
 
 bool UAeonGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent,
@@ -145,14 +139,21 @@ bool UAeonGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySyste
     return !bBlocked && !bMissing;
 }
 
-void UAeonGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
-                                      const FGameplayAbilityActorInfo* ActorInfo,
-                                      const FGameplayAbilityActivationInfo ActivationInfo,
-                                      const bool bReplicateEndAbility,
-                                      const bool bWasCancelled)
+void UAeonGameplayAbility::MaybeActivateOnGivenAbility(const FGameplayAbilityActorInfo* ActorInfo,
+                                                       const FGameplayAbilitySpec& Spec) const
 {
-    Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+    if (EAeonAbilityActivationPolicy::OnGiven == AbilityActivationPolicy)
+    {
+        if (ActorInfo && !Spec.IsActive())
+        {
+            ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
+        }
+    }
+}
 
+void UAeonGameplayAbility::MaybeClearOnGivenAbility(const FGameplayAbilitySpecHandle Handle,
+                                                    const FGameplayAbilityActorInfo* ActorInfo) const
+{
     // If an activation policy is OnGiven then we remove it after the ability completes
     if (EAeonAbilityActivationPolicy::OnGiven == AbilityActivationPolicy)
     {
@@ -161,6 +162,17 @@ void UAeonGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
             ActorInfo->AbilitySystemComponent->ClearAbility(Handle);
         }
     }
+}
+
+void UAeonGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
+                                      const FGameplayAbilityActorInfo* ActorInfo,
+                                      const FGameplayAbilityActivationInfo ActivationInfo,
+                                      const bool bReplicateEndAbility,
+                                      const bool bWasCancelled)
+{
+    Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+    MaybeClearOnGivenAbility(Handle, ActorInfo);
 }
 
 UAeonAbilitySystemComponent* UAeonGameplayAbility::GetAeonAbilitySystemComponentFromActorInfo() const
