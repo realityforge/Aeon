@@ -17,6 +17,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AeonFunctionLibrary.generated.h"
 
+struct FGameplayCueParameters;
 class UAbilitySystemComponent;
 struct FGameplayTag;
 
@@ -43,4 +44,25 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Aeon|Ability")
     static bool TryActivateRandomSingleAbilityByTag(UAbilitySystemComponent* AbilitySystemComponent,
                                                     const FGameplayTag AbilityTag);
+
+    UFUNCTION(BlueprintCallable,
+              Category = "Aeon|GameplayCue",
+              meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
+    static void ExecuteGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                        const FGameplayTag GameplayCueTag,
+                                        const FGameplayCueParameters& GameplayCueParameters);
+
+    UFUNCTION(BlueprintCallable,
+              Category = "Aeon|GameplayCue",
+              meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
+    static void AddGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                    const FGameplayTag GameplayCueTag,
+                                    const FGameplayCueParameters& GameplayCueParameters);
+
+    UFUNCTION(BlueprintCallable,
+              Category = "Aeon|GameplayCue",
+              meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
+    static void RemoveGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                       const FGameplayTag GameplayCueTag,
+                                       const FGameplayCueParameters& GameplayCueParameters);
 };

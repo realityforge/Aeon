@@ -13,8 +13,10 @@
  */
 #include "Aeon/AeonFunctionLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Aeon/Logging.h"
 #include "GameplayAbilitySpec.h"
+#include "GameplayCueManager.h"
 #include "GameplayTagContainer.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonFunctionLibrary)
@@ -58,5 +60,67 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
         AEON_VERBOSE_ALOG("TryActivateRandomSingleAbilityByTag invoked with empty tag on actor '%s'",
                           *AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
         return false;
+    }
+}
+
+static UGameplayCueManager* GetGameplayCueManager()
+{
+    return UAbilitySystemGlobals::Get().GetGameplayCueManager();
+}
+
+void UAeonFunctionLibrary::ExecuteGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                                   const FGameplayTag GameplayCueTag,
+                                                   const FGameplayCueParameters& GameplayCueParameters)
+{
+    if (AbilitySystemComponent)
+    {
+        GetGameplayCueManager()->HandleGameplayCue(AbilitySystemComponent->GetOwner(),
+                                                   GameplayCueTag,
+                                                   EGameplayCueEvent::Type::Executed,
+                                                   GameplayCueParameters);
+    }
+    else
+    {
+        AEON_ERROR_ALOG("UAeonFunctionLibrary::ExecuteGameplayCueLocal invoked with invalid AbilitySystemComponent");
+    }
+}
+
+void UAeonFunctionLibrary::AddGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                               const FGameplayTag GameplayCueTag,
+                                               const FGameplayCueParameters& GameplayCueParameters)
+{
+    if (AbilitySystemComponent)
+    {
+        const auto GameplayCueManager = GetGameplayCueManager();
+        const auto TargetActor = AbilitySystemComponent->GetOwner();
+        GameplayCueManager->HandleGameplayCue(TargetActor,
+                                              GameplayCueTag,
+                                              EGameplayCueEvent::Type::OnActive,
+                                              GameplayCueParameters);
+        GameplayCueManager->HandleGameplayCue(TargetActor,
+                                              GameplayCueTag,
+                                              EGameplayCueEvent::Type::WhileActive,
+                                              GameplayCueParameters);
+    }
+    else
+    {
+        AEON_ERROR_ALOG("UAeonFunctionLibrary::AddGameplayCueLocal invoked with invalid AbilitySystemComponent");
+    }
+}
+
+void UAeonFunctionLibrary::RemoveGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                                  const FGameplayTag GameplayCueTag,
+                                                  const FGameplayCueParameters& GameplayCueParameters)
+{
+    if (AbilitySystemComponent)
+    {
+        GetGameplayCueManager()->HandleGameplayCue(AbilitySystemComponent->GetOwner(),
+                                                   GameplayCueTag,
+                                                   EGameplayCueEvent::Type::Removed,
+                                                   GameplayCueParameters);
+    }
+    else
+    {
+        AEON_ERROR_ALOG("UAeonFunctionLibrary::RemoveGameplayCueLocal invoked with invalid AbilitySystemComponent");
     }
 }
