@@ -62,13 +62,13 @@ protected:
         AbilityActivationPolicy = InAbilityActivationPolicy;
     }
 
-    //~Begin UGameplayAbility Interface
+#pragma region UGameplayAbility Interface
     virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
                             const FGameplayAbilityActorInfo* ActorInfo,
                             const FGameplayAbilityActivationInfo ActivationInfo,
                             bool bReplicateEndAbility,
                             bool bWasCancelled) override;
-    //~End UGameplayAbility Interface
+#pragma endregion
 
     /**
      * Return the AeonAbilitySystemComponent from the associated Actor.
@@ -79,7 +79,7 @@ protected:
     UAeonAbilitySystemComponent* GetAeonAbilitySystemComponentFromActorInfo() const;
 
 public:
-    //~Begin UGameplayAbility Interface
+#pragma region UGameplayAbility Interface
     virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
     // Method has been overridden to incorporate (optional) support for AeonAbilityTagRelationshipMapping integration
@@ -88,5 +88,5 @@ public:
                                       const FGameplayTagContainer* SourceTags = nullptr,
                                       const FGameplayTagContainer* TargetTags = nullptr,
                                       FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-    //~End UGameplayAbility Interface
+#pragma endregion
 };
