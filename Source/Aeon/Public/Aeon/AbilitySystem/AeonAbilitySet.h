@@ -18,11 +18,11 @@
 #include "ScalableFloat.h"
 #include "AeonAbilitySet.generated.h"
 
+class UGameplayAbility;
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
 class UAeonAbilitySet;
 class UAbilitySystemComponent;
-class UAeonGameplayAbility;
 class UAttributeSet;
 class UGameplayEffect;
 
@@ -44,7 +44,7 @@ struct FAeonGameplayAbilityEntry
 
     /** The Gameplay Ability to grant. */
     UPROPERTY(EditDefaultsOnly, meta = (AllowAbstract = "false"))
-    TSubclassOf<UAeonGameplayAbility> Ability{ nullptr };
+    TSubclassOf<UGameplayAbility> Ability{ nullptr };
 
     /** The Base Level of the ability to grant. The Level may be modified when granted to an ASC. */
     UPROPERTY(EditDefaultsOnly)
