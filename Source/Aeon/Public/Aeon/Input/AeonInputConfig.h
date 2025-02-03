@@ -18,7 +18,6 @@
 #include "Engine/DataAsset.h"
 #include "EnhancedInputComponent.h"
 #include "GameplayTagContainer.h"
-#include "IndexTypes.h"
 #include "Logging/StructuredLog.h"
 #include "AeonInputConfig.generated.h"
 
