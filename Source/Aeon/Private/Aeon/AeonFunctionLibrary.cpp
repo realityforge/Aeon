@@ -48,8 +48,19 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
             {
                 const auto& AbilitySpec = AbilitySpecs[FMath::RandRange(0, AbilitySpecs.Num() - 1)];
                 check(AbilitySpec);
-                return !AbilitySpec->IsActive() ? AbilitySystemComponent->TryActivateAbility(AbilitySpec->Handle)
-                                                : false;
+                if (!AbilitySpec->IsActive())
+                {
+                    const bool bSuccess = AbilitySystemComponent->TryActivateAbility(AbilitySpec->Handle);
+                    if (bSuccess && OutGameplayAbilitySpec)
+                    {
+                        *OutGameplayAbilitySpec = AbilitySpec;
+                    }
+                    return bSuccess;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
