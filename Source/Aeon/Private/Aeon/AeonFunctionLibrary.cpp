@@ -42,7 +42,7 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
         if (ensureAlways(AbilitySystemComponent))
         {
             TArray<FGameplayAbilitySpec*> AbilitySpecs;
-            const auto GameplayTags = AbilityTag.GetSingleTagContainer();
+            const auto& GameplayTags = AbilityTag.GetSingleTagContainer();
             AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(GameplayTags, AbilitySpecs);
             if (!AbilitySpecs.IsEmpty())
             {
