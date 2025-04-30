@@ -64,13 +64,12 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
             }
             else
             {
-                FName TagName = AbilityTag.GetTagName();
                 UE_LOGFMT(Aeon,
                           VeryVerbose,
                           "TryActivateRandomSingleAbilityByTag invoked with tag '{Tag}' found no "
                           "matching 'Activatable' GameplayAbilitySpecs on actor 'Actor'. Either no such "
                           "Ability exists or the matching abilities are blocked or missing required tags",
-                          TagName,
+                          AbilityTag.GetTagName(),
                           AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
                 return false;
             }
