@@ -258,6 +258,9 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
             {
                 const auto CDO = Entry.Effect->GetDefaultObject<UGameplayEffect>();
                 auto EffectContext = AbilitySystemComponent->MakeEffectContext();
+                EffectContext.AddSourceObject(SourceObject);
+                EffectContext.AddInstigator(AbilitySystemComponent->GetOwnerActor(),
+                                            AbilitySystemComponent->GetAvatarActor());
                 const float EffectLevel = Entry.Level + LevelDelta;
                 // ReSharper disable once CppTooWideScopeInitStatement
                 const auto Handle = AbilitySystemComponent->ApplyGameplayEffectToSelf(CDO, EffectLevel, EffectContext);
