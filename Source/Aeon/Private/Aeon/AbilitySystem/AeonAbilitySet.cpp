@@ -462,19 +462,19 @@ void UAeonAbilitySet::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
         // ReSharper disable once CppTooWideScopeInitStatement
         const auto PropertyName = PropertyChangedEvent.Property->GetFName();
 
-        if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, Abilities)) == PropertyName)
+        if ((GET_MEMBER_NAME_CHECKED(ThisClass, Abilities)) == PropertyName)
         {
             UpdateAbilityEditorFriendlyTitles();
         }
-        else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, Effects)) == PropertyName)
+        else if ((GET_MEMBER_NAME_CHECKED(ThisClass, Effects)) == PropertyName)
         {
             UpdateEffectEditorFriendlyTitles();
         }
-        else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, AttributeSets)) == PropertyName)
+        else if ((GET_MEMBER_NAME_CHECKED(ThisClass, AttributeSets)) == PropertyName)
         {
             UpdateAttributeSetEditorFriendlyTitles();
         }
-        else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, AttributeValues)) == PropertyName)
+        else if ((GET_MEMBER_NAME_CHECKED(ThisClass, AttributeValues)) == PropertyName)
         {
             UpdateAttributeValueEditorFriendlyTitles();
         }
@@ -488,19 +488,19 @@ void UAeonAbilitySet::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
     // ReSharper disable once CppTooWideScopeInitStatement
     const auto PropertyName = PropertyChangedEvent.PropertyChain.GetActiveMemberNode()->GetValue()->GetFName();
 
-    if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, Abilities)) == PropertyName)
+    if ((GET_MEMBER_NAME_CHECKED(ThisClass, Abilities)) == PropertyName)
     {
         UpdateAbilityEditorFriendlyTitles();
     }
-    else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, Effects)) == PropertyName)
+    else if ((GET_MEMBER_NAME_CHECKED(ThisClass, Effects)) == PropertyName)
     {
         UpdateEffectEditorFriendlyTitles();
     }
-    else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, AttributeSets)) == PropertyName)
+    else if ((GET_MEMBER_NAME_CHECKED(ThisClass, AttributeSets)) == PropertyName)
     {
         UpdateAttributeSetEditorFriendlyTitles();
     }
-    else if ((GET_MEMBER_NAME_CHECKED(UAeonAbilitySet, AttributeValues)) == PropertyName)
+    else if ((GET_MEMBER_NAME_CHECKED(ThisClass, AttributeValues)) == PropertyName)
     {
         UpdateAttributeValueEditorFriendlyTitles();
     }
