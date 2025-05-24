@@ -21,6 +21,7 @@
 #include "Logging/StructuredLog.h"
 #include "AeonInputConfig.generated.h"
 
+class UAeonInputConfig;
 class UInputAction;
 class UInputMappingContext;
 
@@ -39,6 +40,20 @@ struct FAeonNativeInputAction
     TObjectPtr<UInputAction> InputAction{ nullptr };
 
     bool IsValid() const { return InputTag.IsValid() && InputAction; }
+
+#if WITH_EDITORONLY_DATA
+    friend UAeonInputConfig;
+
+    /** The transient title property to use in the editor. */
+    UPROPERTY(VisibleDefaultsOnly, Transient, meta = (EditCondition = false, EditConditionHides))
+    FString EditorFriendlyTitle;
+
+private:
+    /**
+     * Derive the transient title property for use in the editor.
+     */
+    void InitEditorFriendlyTitleProperty();
+#endif
 };
 
 /**
@@ -56,6 +71,20 @@ struct FAeonAbilityInputAction
     TObjectPtr<UInputAction> InputAction{ nullptr };
 
     bool IsValid() const { return InputTag.IsValid() && InputAction; }
+
+#if WITH_EDITORONLY_DATA
+    friend UAeonInputConfig;
+
+    /** The transient title property to use in the editor. */
+    UPROPERTY(VisibleDefaultsOnly, Transient, meta = (EditCondition = false, EditConditionHides))
+    FString EditorFriendlyTitle;
+
+private:
+    /**
+     * Derive the transient title property for use in the editor.
+     */
+    void InitEditorFriendlyTitleProperty();
+#endif
 };
 
 /**
@@ -78,7 +107,9 @@ class AEON_API UAeonInputConfig final : public UDataAsset
      * The callbacks all take a FInputActionValue reference parameter.
      * The supported tags are those with the prefix "Input.Native."
      */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (TitleProperty = "InputTag", AllowPrivateAccess = "true"))
+    UPROPERTY(EditDefaultsOnly,
+              BlueprintReadOnly,
+              meta = (TitleProperty = "EditorFriendlyTitle", AllowPrivateAccess = "true"))
     TArray<FAeonNativeInputAction> NativeInputActions;
 
     /**
@@ -86,7 +117,9 @@ class AEON_API UAeonInputConfig final : public UDataAsset
      * The callbacks all take a FGameplayTag parameter.
      * The supported tags are those with the prefix "Input.Ability."
      */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (TitleProperty = "InputTag", AllowPrivateAccess = "true"))
+    UPROPERTY(EditDefaultsOnly,
+              BlueprintReadOnly,
+              meta = (TitleProperty = "EditorFriendlyTitle", AllowPrivateAccess = "true"))
     TArray<FAeonAbilityInputAction> AbilityInputActions;
 
 public:
@@ -101,10 +134,6 @@ public:
 
     FORCEINLINE UInputMappingContext* GetDefaultMappingContext() const { return DefaultMappingContext; };
 
-#if WITH_EDITOR
-    virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
-#endif
-
     template <class UserObject, typename CallbackFunc>
     void BindAbilityInputAction(UEnhancedInputComponent* InputComponent,
                                 UserObject* ContextObject,
@@ -117,6 +146,39 @@ public:
                                ETriggerEvent TriggerEvent,
                                UserObject* ContextObject,
                                CallbackFunc Func);
+
+#if WITH_EDITOR
+    virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+
+private:
+    /**
+     * Update the titles for AttributeSets to improve the editor experience.
+     */
+    void UpdateNativeInputActionsEditorFriendlyTitles();
+
+    /**
+     * Update the titles for AbilityInputActions to improve the editor experience.
+     */
+    void UpdateAbilityInputActionsEditorFriendlyTitles();
+
+public:
+    /**
+     * Updates the titles of abilities, effects, and attribute sets.
+     */
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+    /**
+     * Updates the titles of abilities, effects, and attribute sets.
+     * This is called when properties that are inside of structs are modified.
+     */
+    virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+
+    /**
+     * Updates the titles of abilities, effects, and attribute sets after the asset is initially loaded.
+     */
+    virtual void PostLoad() override;
+
+#endif // WITH_EDITOR
 };
 
 template <class UserObject, typename CallbackFunc>
