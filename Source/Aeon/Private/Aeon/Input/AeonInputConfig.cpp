@@ -51,16 +51,14 @@ EDataValidationResult UAeonInputConfig::IsDataValid(FDataValidationContext& Cont
         {
             if (!InputAction.InputTag.IsValid())
             {
-                Context.AddError(FText::FromString(FString::Printf(TEXT("NativeInputActions[%d] has an "
-                                                                        "invalid InputTag"),
-                                                                   Index)));
+                Context.AddError(
+                    FText::FromString(FString::Printf(TEXT("NativeInputActions[%d].InputTag is invalid"), Index)));
                 Result = EDataValidationResult::Invalid;
             }
             if (!InputAction.InputAction)
             {
-                Context.AddError(FText::FromString(FString::Printf(TEXT("NativeInputActions[%d] has an "
-                                                                        "invalid InputAction"),
-                                                                   Index)));
+                Context.AddError(
+                    FText::FromString(FString::Printf(TEXT("NativeInputActions[%d].InputAction is invalid"), Index)));
                 Result = EDataValidationResult::Invalid;
             }
         }
@@ -72,16 +70,14 @@ EDataValidationResult UAeonInputConfig::IsDataValid(FDataValidationContext& Cont
         {
             if (!InputAction.InputTag.IsValid())
             {
-                Context.AddError(FText::FromString(FString::Printf(TEXT("AbilityInputActions[%d] has an "
-                                                                        "invalid InputTag"),
-                                                                   Index)));
+                Context.AddError(
+                    FText::FromString(FString::Printf(TEXT("AbilityInputActions[%d].InputTag is invalid"), Index)));
                 Result = EDataValidationResult::Invalid;
             }
             if (!InputAction.InputAction)
             {
-                Context.AddError(FText::FromString(FString::Printf(TEXT("AbilityInputActions[%d] has an "
-                                                                        "invalid InputAction"),
-                                                                   Index)));
+                Context.AddError(
+                    FText::FromString(FString::Printf(TEXT("AbilityInputActions[%d].InputAction is invalid"), Index)));
                 Result = EDataValidationResult::Invalid;
             }
         }
