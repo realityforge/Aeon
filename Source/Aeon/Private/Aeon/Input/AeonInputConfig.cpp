@@ -30,11 +30,11 @@ void FAeonAbilityInputAction::InitEditorFriendlyTitleProperty()
 
 const UInputAction* UAeonInputConfig::FindNativeInputActionByTag(const FGameplayTag& InInputTag) const
 {
-    for (const auto& [InputTag, InputAction] : NativeInputActions)
+    for (const auto& Action : NativeInputActions)
     {
-        if (InputTag == InInputTag && InputAction)
+        if (Action.InputTag == InInputTag && Action.InputAction)
         {
-            return InputAction;
+            return Action.InputAction;
         }
     }
     return nullptr;
