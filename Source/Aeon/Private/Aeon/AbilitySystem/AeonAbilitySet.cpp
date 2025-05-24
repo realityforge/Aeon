@@ -505,15 +505,13 @@ void UAeonAbilitySet::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
         UpdateAttributeValueEditorFriendlyTitles();
     }
 }
-#endif
 
 void UAeonAbilitySet::PostLoad()
 {
     Super::PostLoad();
-#if WITH_EDITOR
     UpdateAbilityEditorFriendlyTitles();
     UpdateEffectEditorFriendlyTitles();
     UpdateAttributeSetEditorFriendlyTitles();
     UpdateAttributeValueEditorFriendlyTitles();
-#endif
 }
+#endif

@@ -313,7 +313,8 @@ public:
      * This is called when properties that are inside of structs are modified.
      */
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-#endif // WITH_EDITOR
 
     virtual void PostLoad() override;
+
+#endif // WITH_EDITOR
 };
