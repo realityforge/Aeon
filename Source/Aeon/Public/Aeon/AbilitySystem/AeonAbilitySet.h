@@ -314,6 +314,9 @@ public:
      */
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 
+    /**
+     * Updates the titles of abilities, effects, and attribute sets after the asset is initially loaded.
+     */
     virtual void PostLoad() override;
 
 #endif // WITH_EDITOR
