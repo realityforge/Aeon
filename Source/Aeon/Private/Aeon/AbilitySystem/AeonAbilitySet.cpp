@@ -22,6 +22,17 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySet)
 
 #if WITH_EDITOR
+static FString GameplayTagContainerToString(const FGameplayTagContainer& TagContainer)
+{
+    TArray<FString> TagNames;
+    for (const auto& Tag : TagContainer)
+    {
+        TagNames.Add(Tag.ToString());
+    }
+
+    return FString::Join(TagNames, TEXT(","));
+}
+
 void FAeonGameplayAbilityEntry::InitEditorFriendlyTitleProperty()
 {
     if (Ability)
@@ -33,7 +44,7 @@ void FAeonGameplayAbilityEntry::InitEditorFriendlyTitleProperty()
             EditorFriendlyTitle = FString::Printf(TEXT("%s [%d] %s"),
                                                   *FPackageName::GetShortName(Package),
                                                   Level,
-                                                  InputTag.IsValid() ? *InputTag.ToString() : TEXT(""));
+                                                  *GameplayTagContainerToString(InputTags));
         }
         else
         {
@@ -41,7 +52,7 @@ void FAeonGameplayAbilityEntry::InitEditorFriendlyTitleProperty()
                                                   *FPackageName::GetShortName(Package),
                                                   *Ability->GetName(),
                                                   Level,
-                                                  InputTag.IsValid() ? *InputTag.ToString() : TEXT(""));
+                                                  *GameplayTagContainerToString(InputTags));
         }
     }
     else
@@ -228,10 +239,10 @@ void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystem
                 const auto CDO = Entry.Ability->GetDefaultObject<UGameplayAbility>();
                 FGameplayAbilitySpec AbilitySpec(CDO, Entry.Level + LevelDelta);
                 AbilitySpec.SourceObject = SourceObject;
-                if (Entry.InputTag.IsValid())
+                for (auto InputTag : Entry.InputTags)
                 {
                     // Only add tag if it is valid
-                    AbilitySpec.GetDynamicSpecSourceTags().AddTag(Entry.InputTag);
+                    AbilitySpec.GetDynamicSpecSourceTags().AddTag(InputTag);
                 }
 
                 // ReSharper disable once CppTooWideScopeInitStatement
