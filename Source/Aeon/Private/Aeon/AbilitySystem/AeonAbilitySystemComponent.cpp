@@ -20,9 +20,7 @@
 
 #pragma region AbilityTagRelationship Support
 
-// --------------------------------------------------- //
-// AbilityTagRelationship Support
-// --------------------------------------------------- //
+#pragma region AbilityTagRelationship Support
 
 void UAeonAbilitySystemComponent::SetTagRelationshipMapping(
     UAeonAbilityTagRelationshipMapping* InTagRelationshipMapping)
@@ -119,5 +117,4 @@ void UAeonAbilitySystemComponent::GetAdditionalTagRequirements(const FGameplayTa
     }
 }
 
-// --------------------------------------------------- //
 #pragma endregion
