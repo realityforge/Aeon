@@ -33,9 +33,11 @@ struct FAeonNativeInputAction
 {
     GENERATED_BODY()
 
+    /** The tag associated with the InputAction. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input.Native"))
     FGameplayTag InputTag{ FGameplayTag::EmptyTag };
 
+    /** The InputAction. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<UInputAction> InputAction{ nullptr };
 
@@ -64,9 +66,11 @@ struct FAeonAbilityInputAction
 {
     GENERATED_BODY()
 
+    /** The tag associated with the InputAction. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input.Ability"))
     FGameplayTag InputTag{ FGameplayTag::EmptyTag };
 
+    /** The InputAction. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<UInputAction> InputAction{ nullptr };
 
