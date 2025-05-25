@@ -176,7 +176,7 @@ private:
  * granted will not appear in the lists below.
  */
 USTRUCT(BlueprintType)
-struct FAeonAbilitySetHandles
+struct AEON_API FAeonAbilitySetHandles
 {
     GENERATED_BODY()
 
