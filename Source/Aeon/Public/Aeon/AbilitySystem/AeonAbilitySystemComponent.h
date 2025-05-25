@@ -18,7 +18,6 @@
 #include "AeonAbilitySystemComponent.generated.h"
 
 class UAeonAbilityTagRelationshipMapping;
-struct FAeonGameplayAbilitySet;
 
 /** The AbilitySystemComponent specialization used in Aeon */
 UCLASS()
