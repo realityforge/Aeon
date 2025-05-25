@@ -18,6 +18,114 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySystemComponent)
 
+bool UAeonAbilitySystemComponent::IsToggleTag(const FGameplayTag& InTag)
+{
+    // TODO: Perhaps we should derive this from AbilitySpec.GetDynamicSpecSourceTags() which
+    //       would be populated by AbilitySet (via InputTags)
+    return false;
+}
+
+void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag)
+{
+    if (ensure(Tag.IsValid()))
+    {
+        bool bMatched = false;
+        for (auto& AbilitySpec : GetActivatableAbilities())
+        {
+            if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag))
+            {
+                // ReSharper disable once CppTooWideScopeInitStatement
+                const bool bAbilitySpecIsActive = AbilitySpec.IsActive();
+                if (IsToggleTag(Tag) && bAbilitySpecIsActive)
+                {
+                    CancelAbilityHandle(AbilitySpec.Handle);
+                }
+                else
+                {
+                    AbilitySpecInputPressed(AbilitySpec);
+                    if (!bAbilitySpecIsActive)
+                    {
+                        TryActivateAbility(AbilitySpec.Handle);
+                    }
+                }
+                bMatched = true;
+            }
+        }
+        if (!bMatched)
+        {
+            UE_LOGFMT(Aeon,
+                      Warning,
+                      "UAeonAbilitySystemComponent::OnAbilityInputPressed: "
+                      "Unable to activate any ability with tag {Tag}",
+                      Tag.GetTagName());
+        }
+    }
+    else
+    {
+        UE_LOGFMT(Aeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputPressed: Invalid tag parameter");
+    }
+}
+
+void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag)
+{
+    if (ensure(Tag.IsValid()))
+    {
+        bool bMatched = false;
+        for (auto& AbilitySpec : GetActivatableAbilities())
+        {
+            if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag))
+            {
+                AbilitySpecInputPressed(AbilitySpec);
+                if (!AbilitySpec.IsActive())
+                {
+                    TryActivateAbility(AbilitySpec.Handle);
+                }
+                bMatched = true;
+            }
+        }
+        if (!bMatched)
+        {
+            UE_LOGFMT(Aeon,
+                      Warning,
+                      "UAeonAbilitySystemComponent::OnAbilityInputHeld: "
+                      "Unable to activate any ability with tag {Tag}",
+                      Tag.GetTagName());
+        }
+    }
+    else
+    {
+        UE_LOGFMT(Aeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputHeld: Invalid tag parameter");
+    }
+}
+
+bool UAeonAbilitySystemComponent::IsCancelOnReleaseTag(const FGameplayTag& Tag)
+{
+    // TODO: Perhaps we should derive this from AbilitySpec.GetDynamicSpecSourceTags() which
+    //       would be populated by AbilitySet (via InputTags)
+    return false;
+}
+
+void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag)
+{
+    if (ensure(Tag.IsValid()))
+    {
+        for (auto& AbilitySpec : GetActivatableAbilities())
+        {
+            if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive())
+            {
+                AbilitySpecInputReleased(AbilitySpec);
+                if (IsCancelOnReleaseTag(Tag))
+                {
+                    CancelAbilityHandle(AbilitySpec.Handle);
+                }
+            }
+        }
+    }
+    else
+    {
+        UE_LOGFMT(Aeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputReleased: Invalid tag parameter");
+    }
+}
 
 #pragma region AbilityTagRelationship Support
 
