@@ -13,6 +13,7 @@
  */
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
 #include "Aeon/AbilitySystem/AeonAbilityTagRelationshipMapping.h"
+#include "Aeon/AbilitySystem/AeonGameplayAbility.h"
 #include "Aeon/Logging.h"
 #include "Logging/StructuredLog.h"
 
