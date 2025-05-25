@@ -51,8 +51,8 @@ void UAeonAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplay
 {
     if (TagRelationshipMapping)
     {
-        FGameplayTagContainer AllBlockTags = BlockTags;
-        FGameplayTagContainer AllCancelTags = CancelTags;
+        auto AllBlockTags = BlockTags;
+        auto AllCancelTags = CancelTags;
         TagRelationshipMapping->GetAbilityTagsToBlockAndCancel(AbilityTags, AllBlockTags, AllCancelTags);
 
         UE_LOGFMT(AeonTagRelationship,
