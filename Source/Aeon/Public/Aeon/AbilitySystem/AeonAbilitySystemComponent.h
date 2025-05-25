@@ -74,7 +74,5 @@ public:
                                       FGameplayTagContainer& OutTargetRequiredTags,
                                       FGameplayTagContainer& OutTargetBlockedTags) const;
 
-    // --------------------------------------------------- //
-
 #pragma endregion
 };
