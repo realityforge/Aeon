@@ -33,6 +33,11 @@ struct FAeonNativeInputAction
 {
     GENERATED_BODY()
 
+    // TODO: The "Categories" metadata is ignored as the Gameplay Tag picker widget ignores
+    //       metadata unless it is on a UCLASS. Fixing this involves writing a FPropertyTypeCustomization
+    //       and registering this customizer. This could be done in the AeonEditor module but has yet to
+    //       be completed.
+
     /** The tag associated with the InputAction. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input.Native"))
     FGameplayTag InputTag{ FGameplayTag::EmptyTag };
@@ -65,6 +70,8 @@ USTRUCT(BlueprintType)
 struct FAeonAbilityInputAction
 {
     GENERATED_BODY()
+
+    // TODO: The "Categories" metadata is ignored. See TODO in FAeonNativeInputAction on how to address this.
 
     /** The tag associated with the InputAction. */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input.Ability"))
