@@ -13,13 +13,17 @@
  */
 #include "Aeon/Character/AeonCharacterBase.h"
 #include "Aeon/AbilitySystem/AeonAbilitySet.h"
+#include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonCharacterBase)
 
-AAeonCharacterBase::AAeonCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {}
+AAeonCharacterBase::AAeonCharacterBase(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer.SetDefaultSubobjectClass<UAeonAbilitySystemComponent>(NAME_AbilitySystemComponent))
+{
+}
 
 #if WITH_EDITOR
 EDataValidationResult AAeonCharacterBase::IsDataValid(FDataValidationContext& Context) const
