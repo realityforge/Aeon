@@ -14,17 +14,11 @@
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
 #include "Aeon/AbilitySystem/AeonAbilityTagRelationshipMapping.h"
 #include "Aeon/AbilitySystem/AeonGameplayAbility.h"
+#include "Aeon/AeonGameplayTags.h"
 #include "Aeon/Logging.h"
 #include "Logging/StructuredLog.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySystemComponent)
-
-bool UAeonAbilitySystemComponent::IsToggleTag(const FGameplayTag& InTag)
-{
-    // TODO: Perhaps we should derive this from AbilitySpec.GetDynamicSpecSourceTags() which
-    //       would be populated by AbilitySet (via InputTags)
-    return false;
-}
 
 void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag)
 {
@@ -37,7 +31,8 @@ void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag)
             {
                 // ReSharper disable once CppTooWideScopeInitStatement
                 const bool bAbilitySpecIsActive = AbilitySpec.IsActive();
-                if (IsToggleTag(Tag) && bAbilitySpecIsActive)
+                if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(AeonGameplayTags::Input_Ability_Toggle)
+                    && bAbilitySpecIsActive)
                 {
                     CancelAbilityHandle(AbilitySpec.Handle);
                 }
@@ -99,13 +94,6 @@ void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag)
     }
 }
 
-bool UAeonAbilitySystemComponent::IsCancelOnReleaseTag(const FGameplayTag& Tag)
-{
-    // TODO: Perhaps we should derive this from AbilitySpec.GetDynamicSpecSourceTags() which
-    //       would be populated by AbilitySet (via InputTags)
-    return false;
-}
-
 void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag)
 {
     if (ensure(Tag.IsValid()))
@@ -115,7 +103,8 @@ void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag
             if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive())
             {
                 AbilitySpecInputReleased(AbilitySpec);
-                if (IsCancelOnReleaseTag(Tag))
+
+                if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(AeonGameplayTags::Input_Ability_CancelOnRelease))
                 {
                     CancelAbilityHandle(AbilitySpec.Handle);
                 }

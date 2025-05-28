@@ -50,24 +50,6 @@ public:
      */
     void OnAbilityInputReleased(const FGameplayTag& Tag);
 
-    /**
-     * Is the specified tag one that should be canceled when the input is released?
-     *
-     * @param Tag The InputTag that identifies the ability.
-     * @return True to cancel ability on input release, else false.
-     * @see UAeonInputConfig for where AbilityInputAction are defined
-     */
-    virtual bool IsCancelOnReleaseTag(const FGameplayTag& Tag);
-
-    /**
-     * Is the specified tag toggles ability from active to inactive.
-     *
-     * @param InTag The InputTag that identifies the ability.
-     * @return True if input toggles ability from active to inactive, else false.
-     * @see UAeonInputConfig for where AbilityInputAction are defined
-     */
-    virtual bool IsToggleTag(const FGameplayTag& InTag);
-
 #pragma region AbilityTagRelationship Support
 
 private:
