@@ -20,7 +20,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySystemComponent)
 
-void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag)
+void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag, const bool bLogIfUnmatched)
 {
     if (ensure(Tag.IsValid()))
     {
@@ -47,7 +47,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag)
                 bMatched = true;
             }
         }
-        if (!bMatched)
+        if (bLogIfUnmatched && !bMatched)
         {
             UE_LOGFMT(Aeon,
                       Warning,
@@ -62,7 +62,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag)
     }
 }
 
-void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag)
+void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag, const bool bLogIfUnmatched)
 {
     if (ensure(Tag.IsValid()))
     {
@@ -79,7 +79,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag)
                 bMatched = true;
             }
         }
-        if (!bMatched)
+        if (bLogIfUnmatched && !bMatched)
         {
             UE_LOGFMT(Aeon,
                       Warning,
@@ -94,10 +94,11 @@ void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag)
     }
 }
 
-void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag)
+void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag, const bool bLogIfUnmatched)
 {
     if (ensure(Tag.IsValid()))
     {
+        bool bMatched = false;
         for (auto& AbilitySpec : GetActivatableAbilities())
         {
             if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive())
@@ -108,7 +109,16 @@ void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag
                 {
                     CancelAbilityHandle(AbilitySpec.Handle);
                 }
+                bMatched = true;
             }
+        }
+        if (bLogIfUnmatched && !bMatched)
+        {
+            UE_LOGFMT(Aeon,
+                      Warning,
+                      "UAeonAbilitySystemComponent::OnAbilityInputReleased: "
+                      "Unable to release any ability with tag {Tag}",
+                      Tag.GetTagName());
         }
     }
     else

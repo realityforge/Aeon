@@ -30,25 +30,28 @@ public:
      * Callback invoked when an AbilityInputAction has associated Input pressed.
      *
      * @param Tag The InputTag that identifies the ability.
+     * @param bLogIfUnmatched A flag that controls whether a log message is emitted if no ability matches the Tag.
      * @see UAeonInputConfig for where AbilityInputAction are defined
      */
-    void OnAbilityInputPressed(const FGameplayTag& Tag);
+    void OnAbilityInputPressed(const FGameplayTag& Tag, bool bLogIfUnmatched = true);
 
     /**
      * Callback invoked when an AbilityInputAction has associated Input held.
      *
      * @param Tag The InputTag that identifies the ability.
+     * @param bLogIfUnmatched A flag that controls whether a log message is emitted if no ability matches the Tag.
      * @see UAeonInputConfig for where AbilityInputAction are defined
      */
-    void OnAbilityInputHeld(const FGameplayTag& Tag);
+    void OnAbilityInputHeld(const FGameplayTag& Tag, bool bLogIfUnmatched = true);
 
     /**
      * Callback invoked when an AbilityInputAction has associated Input released.
      *
      * @param Tag The InputTag that identifies the ability.
+     * @param bLogIfUnmatched A flag that controls whether a log message is emitted if no ability matches the Tag.
      * @see UAeonInputConfig for where AbilityInputAction are defined
      */
-    void OnAbilityInputReleased(const FGameplayTag& Tag);
+    void OnAbilityInputReleased(const FGameplayTag& Tag, bool bLogIfUnmatched = true);
 
 #pragma region AbilityTagRelationship Support
 
