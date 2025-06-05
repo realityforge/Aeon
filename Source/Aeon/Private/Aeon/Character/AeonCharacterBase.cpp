@@ -102,7 +102,7 @@ int32 AAeonCharacterBase::GetAbilityLevel() const
 
 void AAeonCharacterBase::ConfigureAbilitySystemComponent()
 {
-    if (IsLocallyControlled())
+    if (HasAuthority())
     {
         if (ensureAlwaysMsgf(!AbilitySet.IsNull(),
                              TEXT("AbilitySet has not been assigned for actor %s"),
