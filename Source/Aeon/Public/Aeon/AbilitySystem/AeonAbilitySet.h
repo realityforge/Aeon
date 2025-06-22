@@ -270,10 +270,10 @@ public:
      * @param LevelDelta The Delta to apply to Level of effects and abilities before granting them to the ASC.
      * @param SourceObject The source-object to apply when granting abilities.
      */
-    void GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent,
-                             FAeonAbilitySetHandles* OutGrantedHandles = nullptr,
-                             int32 LevelDelta = 0,
-                             UObject* SourceObject = nullptr) const;
+    void GrantToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent,
+                              FAeonAbilitySetHandles* OutGrantedHandles = nullptr,
+                              int32 LevelDelta = 0,
+                              UObject* SourceObject = nullptr) const;
 
 #pragma region AActor Interface
 #if WITH_EDITOR

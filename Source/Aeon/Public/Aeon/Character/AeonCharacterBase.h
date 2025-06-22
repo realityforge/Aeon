@@ -17,6 +17,7 @@
 #include "ModularGasCharacter.h"
 #include "AeonCharacterBase.generated.h"
 
+struct FAeonAbilitySetHandles;
 class UAeonAbilitySet;
 
 /**
@@ -55,7 +56,7 @@ class AEON_API AAeonCharacterBase : public AModularGasCharacter
     /** Load the AbilitySet asynchronously and grant the AbilitySet to the AbilitySystem. */
     void GrantAbilitySetToAbilitySystemAsync();
     /** The low-level method to grant the AbilitySet to the AbilitySystem. */
-    void GrantAbilitySet(const UAeonAbilitySet* Data);
+    void GrantAbilitySet(const UAeonAbilitySet* Data, FAeonAbilitySetHandles* OutGrantedHandles = nullptr);
 
 protected:
     FORCEINLINE EAbilitySetLoadPolicy GetAbilitySetLoadPolicy() const { return AbilitySetLoadPolicy; }

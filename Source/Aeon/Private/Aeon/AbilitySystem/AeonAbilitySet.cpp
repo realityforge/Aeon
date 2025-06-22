@@ -172,10 +172,10 @@ bool FAeonAbilitySetHandles::IsValid() const
 
 UAeonAbilitySet::UAeonAbilitySet(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {}
 
-void UAeonAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent,
-                                          FAeonAbilitySetHandles* OutGrantedHandles,
-                                          int32 LevelDelta,
-                                          UObject* SourceObject) const
+void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent,
+                                           FAeonAbilitySetHandles* OutGrantedHandles,
+                                           int32 LevelDelta,
+                                           UObject* SourceObject) const
 {
     checkf(AbilitySystemComponent, TEXT("AbilitySystemComponent must not be null"));
     if (AbilitySystemComponent->IsOwnerActorAuthoritative())

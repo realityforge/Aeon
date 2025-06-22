@@ -47,10 +47,9 @@ EDataValidationResult AAeonCharacterBase::IsDataValid(FDataValidationContext& Co
 }
 #endif
 
-void AAeonCharacterBase::GrantAbilitySet(const UAeonAbilitySet* const Data)
+void AAeonCharacterBase::GrantAbilitySet(const UAeonAbilitySet* const Data, FAeonAbilitySetHandles* OutGrantedHandles)
 {
-    const int32 ApplyLevel = GetAbilityLevel();
-    Data->GiveToAbilitySystem(GetAbilitySystemComponentFast(), nullptr, ApplyLevel, this);
+    Data->GrantToAbilitySystem(GetAbilitySystemComponentFast(), OutGrantedHandles, GetAbilityLevel(), this);
 }
 
 void AAeonCharacterBase::GrantAbilitySetToAbilitySystemSync()
