@@ -16,7 +16,7 @@
 #include "Logging/LogCategory.h"
 
 // Category usage:
-//	Warning/Error - Unexpected state or problem occured. Should be addressed.
+//	Warning/Error - Unexpected state or problem occurred. Should be addressed.
 //	Log - What occurred? Aeon users care about this.
 //	Verbose - Why did it occur? Aeon developers care about this.
 //  VeryVerbose - What didn't occur and why did it NOT occur? Aeon developers care about this.
