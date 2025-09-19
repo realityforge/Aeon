@@ -123,7 +123,7 @@ void UBTService_AttributesToBlackboard::CacheBlackboardProperties(UBehaviorTreeC
         }
         else
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Error,
                       "{Method}: BlackboardComponent removed or not present on owner.",
                       *GetNameSafe(this));
@@ -168,7 +168,7 @@ void UBTService_AttributesToBlackboard::CacheBlackboardProperties(UBehaviorTreeC
                     else
                     {
                         RuntimeData[i].EntryType = EAttributesToBlackboard_EntryType::Unknown;
-                        UE_LOGFMT(Aeon,
+                        UE_LOGFMT(LogAeon,
                                   Error,
                                   "{Method} - Attempted to use invalid Blackboard Key {BlackboardKey} "
                                   "for Attribute {Attribute} of Type {Type}",
@@ -182,7 +182,10 @@ void UBTService_AttributesToBlackboard::CacheBlackboardProperties(UBehaviorTreeC
         }
         else
         {
-            UE_LOGFMT(Aeon, Error, "{Method}: BlackboardAsset not present on BlackboardComponent.", *GetNameSafe(this));
+            UE_LOGFMT(LogAeon,
+                      Error,
+                      "{Method}: BlackboardAsset not present on BlackboardComponent.",
+                      *GetNameSafe(this));
         }
 
         if (CachedSourceAbilitySystemComponent.IsValid())
@@ -226,7 +229,7 @@ void UBTService_AttributesToBlackboard::CacheAbilitySystemProperties(UBehaviorTr
         }
         else
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Error,
                       "{Method}: SourceActor does not have an AbilitySystemComponent to source Attribute data from.",
                       *GetNameSafe(this));

@@ -233,7 +233,7 @@ void UAeonInputConfig::BindAbilityInputAction(UEnhancedInputComponent* InputComp
         }
         else
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Error,
                       "BindAbilityInputAction: Invalid action at AbilityInputActions[{Index}] "
                       "(InputTag='{Tag}' InputAction='{Action}') in InputConfig named {Config}",
@@ -260,7 +260,7 @@ void UAeonInputConfig::BindNativeInputAction(UEnhancedInputComponent* InputCompo
     }
     else
     {
-        UE_LOGFMT(Aeon,
+        UE_LOGFMT(LogAeon,
                   Warning,
                   "BindNativeInputAction: Unable to locate NativeInputAction "
                   "for InputTag '{Tag}' in InputConfig named '{Config}'",

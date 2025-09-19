@@ -15,6 +15,6 @@
 #include "Aeon/Logging.h"
 
 // The implementation of log category top use within plugin
-DEFINE_LOG_CATEGORY(Aeon);
+DEFINE_LOG_CATEGORY(LogAeon);
 
-DEFINE_LOG_CATEGORY(AeonTagRelationship);
+DEFINE_LOG_CATEGORY(LogAeonTagRelationship);

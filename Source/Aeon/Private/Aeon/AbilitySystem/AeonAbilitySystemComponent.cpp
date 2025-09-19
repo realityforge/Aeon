@@ -49,7 +49,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag,
         }
         if (bLogIfUnmatched && !bMatched)
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Warning,
                       "UAeonAbilitySystemComponent::OnAbilityInputPressed: "
                       "Unable to activate any ability with tag {Tag}",
@@ -58,7 +58,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag,
     }
     else
     {
-        UE_LOGFMT(Aeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputPressed: Invalid tag parameter");
+        UE_LOGFMT(LogAeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputPressed: Invalid tag parameter");
     }
 }
 
@@ -81,7 +81,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag, co
         }
         if (bLogIfUnmatched && !bMatched)
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Warning,
                       "UAeonAbilitySystemComponent::OnAbilityInputHeld: "
                       "Unable to activate any ability with tag {Tag}",
@@ -90,7 +90,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputHeld(const FGameplayTag& Tag, co
     }
     else
     {
-        UE_LOGFMT(Aeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputHeld: Invalid tag parameter");
+        UE_LOGFMT(LogAeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputHeld: Invalid tag parameter");
     }
 }
 
@@ -114,7 +114,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag
         }
         if (bLogIfUnmatched && !bMatched)
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Warning,
                       "UAeonAbilitySystemComponent::OnAbilityInputReleased: "
                       "Unable to release any ability with tag {Tag}",
@@ -123,7 +123,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag
     }
     else
     {
-        UE_LOGFMT(Aeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputReleased: Invalid tag parameter");
+        UE_LOGFMT(LogAeon, Warning, "UAeonAbilitySystemComponent::OnAbilityInputReleased: Invalid tag parameter");
     }
 }
 
@@ -132,7 +132,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& Tag
 void UAeonAbilitySystemComponent::SetTagRelationshipMapping(
     UAeonAbilityTagRelationshipMapping* InTagRelationshipMapping)
 {
-    UE_LOGFMT(AeonTagRelationship,
+    UE_LOGFMT(LogAeonTagRelationship,
               Log,
               "TagRelationshipMapping changed to {Mapping} for AeonAbilitySystemComponent {OwnerActor}",
               GetNameSafe(InTagRelationshipMapping),
@@ -160,7 +160,7 @@ void UAeonAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplay
         auto AllCancelTags = CancelTags;
         TagRelationshipMapping->GetAbilityTagsToBlockAndCancel(AbilityTags, AllBlockTags, AllCancelTags);
 
-        UE_LOGFMT(AeonTagRelationship,
+        UE_LOGFMT(LogAeonTagRelationship,
                   Verbose,
                   "ApplyAbilityBlockAndCancelTags for ability defined "
                   "by tags {Tags} added {BlockTags} block tags and {CancelTags} cancel tags for actor '{OwnerActor}'",
@@ -204,7 +204,7 @@ void UAeonAbilitySystemComponent::GetAdditionalTagRequirements(const FGameplayTa
                                                              OutSourceBlockedTags,
                                                              OutTargetRequiredTags,
                                                              OutTargetBlockedTags);
-        UE_LOGFMT(AeonTagRelationship,
+        UE_LOGFMT(LogAeonTagRelationship,
                   Verbose,
                   "GetAdditionalTagRequirements for ability defined by tags {AbilityTags} for actor '{OwnerActor}': "
                   "ActivationRequiredTags={ActivationRequiredTags} "

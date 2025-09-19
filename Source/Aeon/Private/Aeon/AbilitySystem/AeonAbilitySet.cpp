@@ -149,7 +149,7 @@ void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
         }
         else
         {
-            UE_LOGFMT(Aeon,
+            UE_LOGFMT(LogAeon,
                       Warning,
                       "RemoveAbilitySetFromAbilitySystemComponent() must be invoked when "
                       "OwnerActor is Authoritative");
@@ -157,7 +157,7 @@ void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
     }
     else
     {
-        UE_LOGFMT(Aeon,
+        UE_LOGFMT(LogAeon,
                   Warning,
                   "RemoveAbilitySetFromAbilitySystemComponent() invoked when AbilitySystemComponent "
                   "is invalid. This is likely a result of invoking it multiple times. Please guard "
@@ -187,13 +187,13 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
 
         if (!Tags.IsEmpty())
         {
-            if (UE_LOG_ACTIVE(Aeon, Error))
+            if (UE_LOG_ACTIVE(LogAeon, Error))
             {
                 for (int32 Index = 0; Index < Tags.Num(); ++Index)
                 {
                     if (const auto Tag = Tags.GetByIndex(Index); !Tag.IsValid())
                     {
-                        UE_LOGFMT(Aeon,
+                        UE_LOGFMT(LogAeon,
                                   Error,
                                   "AbilitySet '{AbilitySet}' has invalid tag at Tags[{Tags}]",
                                   GetNameSafe(this),
@@ -223,7 +223,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
             }
             else
             {
-                UE_LOGFMT(Aeon,
+                UE_LOGFMT(LogAeon,
                           Error,
                           "AbilitySet '{AbilitySet}' has invalid value at AttributeSets[{Index}]",
                           GetNameSafe(this),
@@ -254,7 +254,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
             }
             else
             {
-                UE_LOGFMT(Aeon,
+                UE_LOGFMT(LogAeon,
                           Error,
                           "AbilitySet '{AbilitySet}' has invalid value at Abilities[{Index}]",
                           GetNameSafe(this),
@@ -280,7 +280,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
             }
             else
             {
-                UE_LOGFMT(Aeon,
+                UE_LOGFMT(LogAeon,
                           Error,
                           "AbilitySet '{AbilitySet}' has invalid value at Effects[{Index}]",
                           GetNameSafe(this),
@@ -302,7 +302,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
                 }
                 else
                 {
-                    UE_LOGFMT(Aeon,
+                    UE_LOGFMT(LogAeon,
                               Error,
                               "AbilitySet '{AbilitySet}' has an attribute initializer '{Attribute}' for an "
                               "attribute from an AttributeSet '{AttributeSet}' that is not granted to the "
@@ -315,7 +315,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
             }
             else
             {
-                UE_LOGFMT(Aeon,
+                UE_LOGFMT(LogAeon,
                           Error,
                           "AbilitySet '{AbilitySet}' has invalid value at AttributeValues[{Index}]",
                           GetNameSafe(this),
@@ -325,7 +325,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
     }
     else
     {
-        UE_LOGFMT(Aeon, Warning, "GiveToAbilitySystem() must be invoked when OwnerActor is Authoritative");
+        UE_LOGFMT(LogAeon, Warning, "GiveToAbilitySystem() must be invoked when OwnerActor is Authoritative");
     }
 }
 
