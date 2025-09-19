@@ -213,14 +213,14 @@ void UAeonAbilitySystemComponent::GetAdditionalTagRequirements(const FGameplayTa
                   "SourceBlockedTags={SourceBlockedTags} "
                   "TargetRequiredTags={TargetRequiredTags} "
                   "TargetBlockedTags={TargetBlockedTags}",
-                  AbilityTags,
+                  AbilityTags.ToString(),
                   GetNameSafe(GetOwnerActor()),
-                  OutActivationRequiredTags,
-                  OutActivationBlockedTags,
-                  OutSourceRequiredTags,
-                  OutSourceBlockedTags,
-                  OutTargetRequiredTags,
-                  OutTargetBlockedTags);
+                  OutActivationRequiredTags.ToString(),
+                  OutActivationBlockedTags.ToString(),
+                  OutSourceRequiredTags.ToString(),
+                  OutSourceBlockedTags.ToString(),
+                  OutTargetRequiredTags.ToString(),
+                  OutTargetBlockedTags.ToString());
     }
 }
 
