@@ -19,7 +19,7 @@
 UAnimNotify_SendGameplayEvent::UAnimNotify_SendGameplayEvent()
 {
 #if WITH_EDITORONLY_DATA
-    NotifyColor = FColor::Purple;
+    NotifyColor = FColor(255, 127, 0);
     bShouldFireInEditor = false;
 #endif // WITH_EDITORONLY_DATA
 }
