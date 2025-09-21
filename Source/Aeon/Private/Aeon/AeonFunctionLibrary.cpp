@@ -65,7 +65,7 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
             else
             {
                 UE_LOGFMT(LogAeon,
-                          VeryVerbose,
+                          Verbose,
                           "TryActivateRandomSingleAbilityByTag invoked with tag '{Tag}' found no "
                           "matching 'Activatable' GameplayAbilitySpecs on actor '{Actor}'. Either no such "
                           "Ability exists or the matching abilities are blocked or missing required tags",
@@ -77,7 +77,7 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
         else
         {
             UE_LOGFMT(LogAeon,
-                      Verbose,
+                      Warning,
                       "TryActivateRandomSingleAbilityByTag invoked with tag '{Tag}' on invalid actor",
                       AbilityTag.GetTagName());
             return false;
@@ -86,7 +86,7 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
     else
     {
         UE_LOGFMT(LogAeon,
-                  Verbose,
+                  Warning,
                   "TryActivateRandomSingleAbilityByTag invoked with empty tag on actor '{Actor}'",
                   AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
         return false;
