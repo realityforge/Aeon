@@ -9,6 +9,8 @@
 #include "GameplayTagContainer.h"
 #include "Logging/StructuredLog.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(BTTask_ActivateAbilityByTag)
+
 UBTTask_ActivateAbilityByTag::UBTTask_ActivateAbilityByTag()
 {
     NodeName = TEXT("Activate Ability By Tag");
