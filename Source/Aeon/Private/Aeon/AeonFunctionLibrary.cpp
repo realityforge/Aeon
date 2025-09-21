@@ -93,6 +93,41 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
     }
 }
 
+void UAeonFunctionLibrary::CancelActiveAbilitiesByTag(UAbilitySystemComponent* AbilitySystemComponent,
+                                                      const FGameplayTag& Tag)
+{
+    if (ensureAlways(Tag.IsValid()))
+    {
+        if (ensureAlways(AbilitySystemComponent))
+        {
+            TArray<FGameplayAbilitySpec*> Specs;
+            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.GetSingleTagContainer(),
+                                                                                        Specs);
+            for (const auto Spec : Specs)
+            {
+                if (Spec && Spec->IsActive())
+                {
+                    AbilitySystemComponent->CancelAbilityHandle(Spec->Handle);
+                }
+            }
+        }
+        else
+        {
+            UE_LOGFMT(LogAeon,
+                      Warning,
+                      "CancelActiveAbilitiesByTag invoked with tag '{Tag}' on invalid AbilitySystemComponent");
+        }
+    }
+    else
+    {
+        UE_LOGFMT(LogAeon,
+                  Warning,
+                  "CancelActiveAbilitiesByTag invoked with invalid tag on actor '{Actor}'",
+                  AbilitySystemComponent ? AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel()
+                                         : FString("Unknown"));
+    }
+}
+
 static UGameplayCueManager* GetGameplayCueManager()
 {
     return UAbilitySystemGlobals::Get().GetGameplayCueManager();

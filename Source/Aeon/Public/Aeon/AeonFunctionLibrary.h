@@ -65,6 +65,8 @@ public:
                                                     const FGameplayTag AbilityTag,
                                                     FGameplayAbilitySpec** OutGameplayAbilitySpec = nullptr);
 
+    static void CancelActiveAbilitiesByTag(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayTag& Tag);
+
     UFUNCTION(BlueprintCallable,
               Category = "Aeon|GameplayCue",
               meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
