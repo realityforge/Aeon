@@ -78,7 +78,10 @@ void UAeonGameplayAbility_Group::EndAbility(const FGameplayAbilitySpecHandle Han
 EDataValidationResult UAeonGameplayAbility_Group::IsDataValid(FDataValidationContext& Context) const
 {
     auto Result = CombineDataValidationResults(Super::IsDataValid(Context), EDataValidationResult::Valid);
-    if (!GetClass()->HasAnyClassFlags(CLASS_Abstract) && !GroupTag.IsValid())
+    const auto Blueprint = UBlueprint::GetBlueprintFromClass(GetClass());
+    const bool bAbstract =
+        GetClass()->HasAnyClassFlags(CLASS_Abstract) || Blueprint && Blueprint->bGenerateAbstractClass;
+    if (!bAbstract && !GroupTag.IsValid())
     {
         Context.AddError(FText::FromString(FString::Printf(TEXT("GroupTag is invalid"))));
         Result = EDataValidationResult::Invalid;

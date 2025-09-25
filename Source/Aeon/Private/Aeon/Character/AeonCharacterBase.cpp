@@ -30,7 +30,10 @@ EDataValidationResult AAeonCharacterBase::IsDataValid(FDataValidationContext& Co
 {
     auto Result = CombineDataValidationResults(Super::IsDataValid(Context), EDataValidationResult::Valid);
 
-    if (!GetClass()->HasAnyClassFlags(CLASS_Abstract))
+    const auto Blueprint = UBlueprint::GetBlueprintFromClass(GetClass());
+    const bool bAbstract =
+        GetClass()->HasAnyClassFlags(CLASS_Abstract) || Blueprint && Blueprint->bGenerateAbstractClass;
+    if (!bAbstract)
     {
         // ReSharper disable once CppTooWideScopeInitStatement
         if (AbilitySet.IsNull())
