@@ -66,10 +66,6 @@ private:
     TObjectPtr<UAeonAbilityTagRelationshipMapping> TagRelationshipMapping;
 
 public:
-    // --------------------------------------------------- //
-    // AbilityTagRelationship Support
-    // --------------------------------------------------- //
-
     /**
      * Set the tag relationship mapping.
      *
