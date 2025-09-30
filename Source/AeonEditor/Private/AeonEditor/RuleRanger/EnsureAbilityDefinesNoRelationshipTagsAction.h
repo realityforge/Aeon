@@ -34,7 +34,7 @@ class AEONEDITOR_API UEnsureAbilityDefinesNoRelationshipTagsAction final : publi
                                  const FName& PropertyName);
 
 public:
-    virtual void Apply_Implementation(URuleRangerActionContext* ActionContext, UObject* Object) override;
+    virtual void Apply(URuleRangerActionContext* ActionContext, UObject* Object) override;
 
     virtual UClass* GetExpectedType() override;
 };

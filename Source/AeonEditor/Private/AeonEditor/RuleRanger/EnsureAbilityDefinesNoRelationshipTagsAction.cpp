@@ -37,8 +37,7 @@ void UEnsureAbilityDefinesNoRelationshipTagsAction::EnsureEmptyTagContainer(URul
     }
 }
 
-void UEnsureAbilityDefinesNoRelationshipTagsAction::Apply_Implementation(URuleRangerActionContext* ActionContext,
-                                                                         UObject* Object)
+void UEnsureAbilityDefinesNoRelationshipTagsAction::Apply(URuleRangerActionContext* ActionContext, UObject* Object)
 {
     static const FName CancelAbilitiesWithTagName("CancelAbilitiesWithTag");
     static const FName BlockAbilitiesWithTagName("BlockAbilitiesWithTag");
