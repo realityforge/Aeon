@@ -19,6 +19,7 @@
 
 struct FAeonAbilitySetHandles;
 class UAeonAbilitySet;
+class UAeonAbilitySystemComponent;
 
 /**
  * An enum to determine whether the Configure action is synchronous or synchronous.
@@ -79,4 +80,6 @@ public:
 #if WITH_EDITOR
     virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 #endif
+
+    UAeonAbilitySystemComponent* GetAeonAbilitySystemComponent() const;
 };

@@ -50,6 +50,11 @@ EDataValidationResult AAeonCharacterBase::IsDataValid(FDataValidationContext& Co
 }
 #endif
 
+UAeonAbilitySystemComponent* AAeonCharacterBase::GetAeonAbilitySystemComponent() const
+{
+    return CastChecked<UAeonAbilitySystemComponent>(GetAbilitySystemComponentFast());
+}
+
 void AAeonCharacterBase::GrantAbilitySet(const UAeonAbilitySet* const Data, FAeonAbilitySetHandles* OutGrantedHandles)
 {
     Data->GrantToAbilitySystem(GetAbilitySystemComponentFast(), OutGrantedHandles, GetAbilityLevel(), this);
