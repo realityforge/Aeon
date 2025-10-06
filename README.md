@@ -6,4 +6,4 @@ The plugin is under heavy development, APIs are in flux, and documentation is mi
 
 ## Contributor Resources
 
-- Review `AGENTS.md` for repository guidelines covering layout, build commands, coding style, and review expectations.
+- Review [AGENTS.md](AGENTS.md) for repository guidelines covering layout, build commands, coding style, and review expectations.
