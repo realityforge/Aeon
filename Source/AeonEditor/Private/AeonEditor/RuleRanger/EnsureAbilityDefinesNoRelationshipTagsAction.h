@@ -22,7 +22,7 @@
 
 /**
  * Ensure that the GameplayAbility defines no relationship tags.
- * The assumption is that relationship tags are all defined viaUAeonAbilityTagRelationshipMapping.
+ * The assumption is that relationship tags are all defined via UAeonAbilityTagRelationshipMapping.
  */
 UCLASS(DisplayName = "Ensure that the GameplayAbility defines no relationship tags")
 class UEnsureAbilityDefinesNoRelationshipTagsAction final : public URuleRangerAction
