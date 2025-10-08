@@ -22,7 +22,7 @@ enum class EAeonAbilityTagSource : uint8
  * on the controlled pawn using a tag, either from a property or a blackboard key.
  */
 UCLASS()
-class AEONAI_API UBTTask_ActivateAbilityByTag : public UBTTaskNode
+class UBTTask_ActivateAbilityByTag : public UBTTaskNode
 {
     GENERATED_BODY()
 

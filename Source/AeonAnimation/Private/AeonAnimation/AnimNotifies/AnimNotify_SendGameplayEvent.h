@@ -24,7 +24,7 @@
  * gameplay-specific actions or states to the owner actor during animations.
  */
 UCLASS(DisplayName = "Send Gameplay Event")
-class AEONANIMATION_API UAnimNotify_SendGameplayEvent : public UAnimNotify
+class UAnimNotify_SendGameplayEvent : public UAnimNotify
 {
     GENERATED_BODY()
 

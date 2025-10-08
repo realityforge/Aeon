@@ -19,7 +19,7 @@
 #include "BTDecorator_HasMatchingGameplayTag.generated.h"
 
 UCLASS()
-class AEONAI_API UBTDecorator_HasMatchingGameplayTag : public UBTDecorator_BlackboardBase
+class UBTDecorator_HasMatchingGameplayTag : public UBTDecorator_BlackboardBase
 {
     GENERATED_BODY()
 

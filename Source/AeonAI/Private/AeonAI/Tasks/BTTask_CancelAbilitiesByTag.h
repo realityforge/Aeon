@@ -13,7 +13,7 @@ class UAbilitySystemComponent;
  * on the controlled pawn matching a tag, either from a property or a blackboard key.
  */
 UCLASS()
-class AEONAI_API UBTTask_CancelAbilitiesByTag : public UBTTaskNode
+class UBTTask_CancelAbilitiesByTag : public UBTTaskNode
 {
     GENERATED_BODY()
 

@@ -120,7 +120,7 @@ struct FAttributeToBlackboardRuntimeData
  * - Attributes must be valid FGameplayAttribute handles.
  */
 UCLASS(meta = (DisplayName = "Attributes → Blackboard"))
-class AEONAI_API UBTService_AttributesToBlackboard : public UBTService
+class UBTService_AttributesToBlackboard : public UBTService
 {
     GENERATED_BODY()
 
