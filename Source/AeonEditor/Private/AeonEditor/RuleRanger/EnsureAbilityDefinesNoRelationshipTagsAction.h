@@ -25,7 +25,7 @@
  * The assumption is that relationship tags are all defined viaUAeonAbilityTagRelationshipMapping.
  */
 UCLASS(DisplayName = "Ensure that the GameplayAbility defines no relationship tags")
-class AEONEDITOR_API UEnsureAbilityDefinesNoRelationshipTagsAction final : public URuleRangerAction
+class UEnsureAbilityDefinesNoRelationshipTagsAction final : public URuleRangerAction
 {
     GENERATED_BODY()
 
