@@ -17,6 +17,8 @@
 #include "CoreMinimal.h"
 #include "AeonGameplayAbility.generated.h"
 
+#define UE_API AEON_API
+
 class UAeonAbilitySystemComponent;
 
 /**
@@ -43,7 +45,7 @@ enum class EAeonAbilityActivationPolicy : uint8
  * The base GameplayAbility class used by Aeon.
  */
 UCLASS(Abstract)
-class AEON_API UAeonGameplayAbility : public UGameplayAbility
+class UE_API UAeonGameplayAbility : public UGameplayAbility
 {
     GENERATED_BODY()
 
@@ -93,3 +95,5 @@ public:
                                       FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 #pragma endregion
 };
+
+#undef UE_API

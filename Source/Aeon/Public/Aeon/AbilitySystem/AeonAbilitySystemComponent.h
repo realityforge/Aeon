@@ -17,11 +17,13 @@
 #include "CoreMinimal.h"
 #include "AeonAbilitySystemComponent.generated.h"
 
+#define UE_API AEON_API
+
 class UAeonAbilityTagRelationshipMapping;
 
 /** The AbilitySystemComponent specialization used in Aeon */
 UCLASS()
-class AEON_API UAeonAbilitySystemComponent : public UAbilitySystemComponent
+class UE_API UAeonAbilitySystemComponent : public UAbilitySystemComponent
 {
     GENERATED_BODY()
 
@@ -101,3 +103,5 @@ public:
 
 #pragma endregion
 };
+
+#undef UE_API

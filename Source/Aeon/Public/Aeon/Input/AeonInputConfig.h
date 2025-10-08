@@ -21,6 +21,8 @@
 #include "Logging/StructuredLog.h"
 #include "AeonInputConfig.generated.h"
 
+#define UE_API AEON_API
+
 class UAeonInputConfig;
 class UInputAction;
 class UInputMappingContext;
@@ -102,7 +104,7 @@ private:
  * DataAsset containing InputAction to GameplayTag mapping.
  */
 UCLASS(BlueprintType, Const)
-class AEON_API UAeonInputConfig final : public UDataAsset
+class UE_API UAeonInputConfig final : public UDataAsset
 {
     GENERATED_BODY()
 
@@ -268,3 +270,5 @@ void UAeonInputConfig::BindNativeInputAction(UEnhancedInputComponent* InputCompo
                   GetName());
     }
 }
+
+#undef UE_API

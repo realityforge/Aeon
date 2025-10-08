@@ -19,6 +19,8 @@
 #include "ScalableFloat.h"
 #include "AeonAbilitySet.generated.h"
 
+#define UE_API AEON_API
+
 class UGameplayAbility;
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
@@ -178,7 +180,7 @@ private:
  * granted will not appear in the lists below.
  */
 USTRUCT(BlueprintType)
-struct AEON_API FAeonAbilitySetHandles
+struct UE_API FAeonAbilitySetHandles
 {
     GENERATED_BODY()
 
@@ -227,7 +229,7 @@ public:
  * to understand.
  */
 UCLASS(BlueprintType, Const)
-class AEON_API UAeonAbilitySet final : public UPrimaryDataAsset
+class UE_API UAeonAbilitySet final : public UPrimaryDataAsset
 {
     GENERATED_BODY()
 
@@ -323,3 +325,5 @@ public:
 
 #endif // WITH_EDITOR
 };
+
+#undef UE_API

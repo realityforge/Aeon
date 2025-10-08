@@ -17,6 +17,8 @@
 #include "CoreMinimal.h"
 #include "AeonGameplayAbility_Group.generated.h"
 
+#define UE_API AEON_API
+
 /**
  * Ability to associate the owning AbilitySystemComponent with the specified group.
  *
@@ -24,7 +26,7 @@
  * @link UGroupAbilitySystem @endlink subsystem.</p>
  */
 UCLASS(Abstract, meta = (RuleRangerDataOnly))
-class AEON_API UAeonGameplayAbility_Group : public UAeonGameplayAbility
+class UE_API UAeonGameplayAbility_Group : public UAeonGameplayAbility
 {
     GENERATED_BODY()
 
@@ -50,3 +52,5 @@ public:
     virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 #endif
 };
+
+#undef UE_API

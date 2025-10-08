@@ -18,6 +18,8 @@
 #include "Templates/SubclassOf.h"
 #include "GroupAbilitySystem.generated.h"
 
+#define UE_API AEON_API
+
 class UAbilitySystemComponent;
 class UGroupAbilitySystemComponentRegistry;
 class UGameplayAbility;
@@ -38,8 +40,8 @@ class UObject;
  *
  * @note {This has been somewhat inspired by the ULyraGlobalAbilitySystem system in Lyra}
  */
-UCLASS()
-class AEON_API UGroupAbilitySystem final : public UWorldSubsystem
+UCLASS(MinimalAPI)
+class UGroupAbilitySystem final : public UWorldSubsystem
 {
     GENERATED_BODY()
 
@@ -79,9 +81,9 @@ public:
      *                  (Implicit registrations are those due to an explicit registration of a child group.)
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    bool IsAbilitySystemComponentRegistered(FGameplayTag GroupTag,
-                                            UAbilitySystemComponent* AbilitySystemComponent,
-                                            const bool bImplicit = false) const;
+    UE_API bool IsAbilitySystemComponentRegistered(FGameplayTag GroupTag,
+                                                   UAbilitySystemComponent* AbilitySystemComponent,
+                                                   const bool bImplicit = false) const;
 
     /**
      * Register an ASC with the group and apply any active group abilities and/or effects.
@@ -90,7 +92,7 @@ public:
      * @param  AbilitySystemComponent The AbilitySystemComponent to register.
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    void RegisterAbilitySystemComponent(FGameplayTag GroupTag, UAbilitySystemComponent* AbilitySystemComponent);
+    UE_API void RegisterAbilitySystemComponent(FGameplayTag GroupTag, UAbilitySystemComponent* AbilitySystemComponent);
 
     /**
      * Remove an ASC from the group, deactivate any active group abilities and/or effects.
@@ -99,7 +101,8 @@ public:
      * @param  AbilitySystemComponent The AbilitySystemComponent to unregister.
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    void UnregisterAbilitySystemComponent(FGameplayTag GroupTag, UAbilitySystemComponent* AbilitySystemComponent);
+    UE_API void UnregisterAbilitySystemComponent(FGameplayTag GroupTag,
+                                                 UAbilitySystemComponent* AbilitySystemComponent);
 
     /**
      * Test if the specified ability has been added to the group.
@@ -109,7 +112,7 @@ public:
      * @return true if the ability has been added to the group.
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    bool IsAbilityAddedToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayAbility> Ability) const;
+    UE_API bool IsAbilityAddedToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayAbility> Ability) const;
 
     /**
      * Apply the specified ability to the specified group.
@@ -119,7 +122,7 @@ public:
      * @param Ability the Ability to add.
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    void AddAbilityToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayAbility> Ability);
+    UE_API void AddAbilityToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayAbility> Ability);
 
     /**
      * Remove the specified ability from the group.
@@ -129,7 +132,7 @@ public:
      * @param Ability the Ability to remove
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    void RemoveAbilityFromGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayAbility> Ability);
+    UE_API void RemoveAbilityFromGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayAbility> Ability);
 
     /**
      * Test if the specified effect has been added to the group.
@@ -139,7 +142,7 @@ public:
      * @return true if the effect has been added to the group.
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    bool IsEffectAddedToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayEffect> Effect) const;
+    UE_API bool IsEffectAddedToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayEffect> Effect) const;
 
     /**
      * Add the specified effect to the group.
@@ -149,7 +152,7 @@ public:
      * @param Effect the Effect to add
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    void AddEffectToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayEffect> Effect);
+    UE_API void AddEffectToGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayEffect> Effect);
 
     /**
      * Remove the specified effect from the group.
@@ -159,7 +162,9 @@ public:
      * @param Effect the Effect to remove
      */
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aeon")
-    void RemoveEffectFromGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayEffect> Effect);
+    UE_API void RemoveEffectFromGroup(FGameplayTag GroupTag, TSubclassOf<UGameplayEffect> Effect);
 
     virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 };
+
+#undef UE_API

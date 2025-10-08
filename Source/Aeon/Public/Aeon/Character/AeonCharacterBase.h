@@ -17,6 +17,8 @@
 #include "ModularGasCharacter.h"
 #include "AeonCharacterBase.generated.h"
 
+#define UE_API AEON_API
+
 struct FAeonAbilitySetHandles;
 class UAeonAbilitySet;
 class UAeonAbilitySystemComponent;
@@ -34,7 +36,7 @@ enum class EAbilitySetLoadPolicy : uint8
 };
 
 UCLASS(Abstract, meta = (ShortTooltip = "The base character class used by Aeon."))
-class AEON_API AAeonCharacterBase : public AModularGasCharacter
+class UE_API AAeonCharacterBase : public AModularGasCharacter
 {
     GENERATED_BODY()
 
@@ -83,3 +85,5 @@ public:
 
     UAeonAbilitySystemComponent* GetAeonAbilitySystemComponent() const;
 };
+
+#undef UE_API

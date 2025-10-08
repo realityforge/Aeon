@@ -15,6 +15,8 @@
 
 #include "Logging/LogCategory.h"
 
+#define UE_API AEON_API
+
 // Category usage:
 //	Warning/Error - Unexpected state or problem occurred. Should be addressed.
 //	Log - What occurred? Aeon users care about this.
@@ -23,12 +25,14 @@
 //
 
 // Log category to use within the Aeon plugin
-AEON_API DECLARE_LOG_CATEGORY_EXTERN(LogAeon, Display, All);
+UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeon, Display, All);
 
 // Log categories that are primarily used when debugging or understanding Aeon interactions and
 // are not expected to be used at runtime.
 #ifdef AEON_DEBUG
-AEON_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Display, All);
+UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Display, All);
 #else
-AEON_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Display, Warning);
+UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Display, Warning);
 #endif
+
+#undef UE_API

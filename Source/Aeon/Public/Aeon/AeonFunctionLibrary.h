@@ -22,11 +22,13 @@ struct FGameplayCueParameters;
 class UAbilitySystemComponent;
 struct FGameplayTag;
 
+#define UE_API AEON_API
+
 /**
  * Blueprint function library exposing useful functions used within Aeon.
  */
 UCLASS()
-class AEON_API UAeonFunctionLibrary : public UBlueprintFunctionLibrary
+class UAeonFunctionLibrary : public UBlueprintFunctionLibrary
 
 {
     GENERATED_BODY()
@@ -45,8 +47,8 @@ public:
     UFUNCTION(BlueprintCallable,
               Category = "Aeon|Ability",
               meta = (DisplayName = "Try Activate Random Single Ability By Tag", ReturnDisplayName = "Success"))
-    static bool BP_TryActivateRandomSingleAbilityByTag(UAbilitySystemComponent* AbilitySystemComponent,
-                                                       const FGameplayTag AbilityTag);
+    static UE_API bool BP_TryActivateRandomSingleAbilityByTag(UAbilitySystemComponent* AbilitySystemComponent,
+                                                              const FGameplayTag AbilityTag);
 
     /**
      * Attempts to activate a random ability associated with the specified tag on the given AbilitySystemComponent.
@@ -61,30 +63,33 @@ public:
      * guarantee successful activation. Returns false if no suitable ability is found or the input parameters are
      * invalid.
      */
-    static bool TryActivateRandomSingleAbilityByTag(UAbilitySystemComponent* AbilitySystemComponent,
-                                                    const FGameplayTag AbilityTag,
-                                                    FGameplayAbilitySpec** OutGameplayAbilitySpec = nullptr);
+    UE_API static bool TryActivateRandomSingleAbilityByTag(UAbilitySystemComponent* AbilitySystemComponent,
+                                                           const FGameplayTag AbilityTag,
+                                                           FGameplayAbilitySpec** OutGameplayAbilitySpec = nullptr);
 
-    static void CancelActiveAbilitiesByTag(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayTag& Tag);
-
-    UFUNCTION(BlueprintCallable,
-              Category = "Aeon|GameplayCue",
-              meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
-    static void ExecuteGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
-                                        const FGameplayTag GameplayCueTag,
-                                        const FGameplayCueParameters& GameplayCueParameters);
+    UE_API static void CancelActiveAbilitiesByTag(UAbilitySystemComponent* AbilitySystemComponent,
+                                                  const FGameplayTag& Tag);
 
     UFUNCTION(BlueprintCallable,
               Category = "Aeon|GameplayCue",
               meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
-    static void AddGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
-                                    const FGameplayTag GameplayCueTag,
-                                    const FGameplayCueParameters& GameplayCueParameters);
+    static UE_API void ExecuteGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                               const FGameplayTag GameplayCueTag,
+                                               const FGameplayCueParameters& GameplayCueParameters);
 
     UFUNCTION(BlueprintCallable,
               Category = "Aeon|GameplayCue",
               meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
-    static void RemoveGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
-                                       const FGameplayTag GameplayCueTag,
-                                       const FGameplayCueParameters& GameplayCueParameters);
+    static UE_API void AddGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                           const FGameplayTag GameplayCueTag,
+                                           const FGameplayCueParameters& GameplayCueParameters);
+
+    UFUNCTION(BlueprintCallable,
+              Category = "Aeon|GameplayCue",
+              meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
+    static UE_API void RemoveGameplayCueLocal(const UAbilitySystemComponent* AbilitySystemComponent,
+                                              const FGameplayTag GameplayCueTag,
+                                              const FGameplayCueParameters& GameplayCueParameters);
 };
+
+#undef UE_API

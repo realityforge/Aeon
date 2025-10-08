@@ -17,13 +17,15 @@
 #include "CoreMinimal.h"
 #include "AeonAttributeSetBase.generated.h"
 
+#define UE_API AEON_API
+
 struct FGameplayTag;
 
 /**
  * Base class for AttributeSet that defines some common helper functions.
  */
 UCLASS(Abstract)
-class AEON_API UAeonAttributeSetBase : public UAttributeSet
+class UE_API UAeonAttributeSetBase : public UAttributeSet
 {
     GENERATED_BODY()
 
@@ -116,3 +118,5 @@ protected:
                                               ErrorTolerance);
     }
 };
+
+#undef UE_API
