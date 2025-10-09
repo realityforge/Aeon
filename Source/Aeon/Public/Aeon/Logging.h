@@ -17,22 +17,23 @@
 
 #define UE_API AEON_API
 
+// Log categories that are primarily used when debugging or understanding plugin interactions and
+// are not expected to be used at runtime.
+//
 // Category usage:
 //	Warning/Error - Unexpected state or problem occurred. Should be addressed.
-//	Log - What occurred? Aeon users care about this.
-//	Verbose - Why did it occur? Aeon developers care about this.
-//  VeryVerbose - What didn't occur and why did it NOT occur? Aeon developers care about this.
-//
+//	Log - What occurred? Plugin users care about this.
+//	Verbose - Why did it occur? Plugin developers care about this.
+//  VeryVerbose - What didn't occur and why did it NOT occur? Plugin developers care about this.
 
-// Log category to use within the Aeon plugin
+#ifdef AEON_DEBUG
 UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeon, Display, All);
 
-// Log categories that are primarily used when debugging or understanding Aeon interactions and
-// are not expected to be used at runtime.
-#ifdef AEON_DEBUG
 UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Display, All);
 #else
-UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Display, Warning);
+UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeon, Warning, Warning);
+
+UE_API DECLARE_LOG_CATEGORY_EXTERN(LogAeonTagRelationship, Warning, Warning);
 #endif
 
 #undef UE_API

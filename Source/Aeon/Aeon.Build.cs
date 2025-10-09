@@ -23,5 +23,10 @@ public class Aeon : ModuleRules
         PublicDependencyModuleNames.AddRange(new[] { "Core", "EnhancedInput", "GameplayAbilities", "GameplayTags",
                                                      "ModularGameplayActors", "ModularGasGameplayActors" });
         PrivateDependencyModuleNames.AddRange(new[] { "CoreUObject", "Engine", "GameplayTasks" });
+        if (!PublicDefinitions.Contains("AEON_DEBUG"))
+        {
+            PublicDefinitions.Add(UnrealTargetConfiguration.Shipping != Target.Configuration ? "AEON_DEBUG=1"
+                                                                                             : "AEON_DEBUG=0");
+        }
     }
 }
