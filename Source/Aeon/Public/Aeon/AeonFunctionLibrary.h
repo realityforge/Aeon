@@ -28,7 +28,7 @@ struct FGameplayTag;
  * Blueprint function library exposing useful functions used within Aeon.
  */
 UCLASS()
-class UAeonFunctionLibrary : public UBlueprintFunctionLibrary
+class UAeonFunctionLibrary final : public UBlueprintFunctionLibrary
 
 {
     GENERATED_BODY()
