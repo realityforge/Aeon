@@ -41,7 +41,7 @@ struct FAeonNativeInputAction
     //       be completed.
 
     /** The tag associated with the InputAction. */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input.Native"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "NativeInputTagCategory"))
     FGameplayTag InputTag{ FGameplayTag::EmptyTag };
 
     /** The InputAction. */
@@ -76,7 +76,7 @@ struct FAeonAbilityInputAction
     // TODO: The "Categories" metadata is ignored. See TODO in FAeonNativeInputAction on how to address this.
 
     /** The tag associated with the InputAction. */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input.Ability"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "AbilityInputTagCategory"))
     FGameplayTag InputTag{ FGameplayTag::EmptyTag };
 
     /** The InputAction. */

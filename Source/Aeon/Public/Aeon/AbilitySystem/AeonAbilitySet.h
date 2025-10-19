@@ -56,7 +56,7 @@ struct FAeonGameplayAbilityEntry
     /**
      * Tag indicating input tags that can trigger the Ability or specify how input is processed.
      */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "InputTagCategory"))
     FGameplayTagContainer InputTags;
 
 #if WITH_EDITOR

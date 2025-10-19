@@ -31,7 +31,9 @@ class UE_API UAeonGameplayAbility_Group : public UAeonGameplayAbility
     GENERATED_BODY()
 
     /** The group to place the AbilitySystemComponent in. */
-    UPROPERTY(EditDefaultsOnly, Category = "Aeon|Ability", meta = (Categories = "Group", AllowPrivateAccess = true))
+    UPROPERTY(EditDefaultsOnly,
+              Category = "Aeon|Ability",
+              meta = (Categories = "GroupTagCategory", AllowPrivateAccess = true))
     FGameplayTag GroupTag{ FGameplayTag::EmptyTag };
 
 public:
