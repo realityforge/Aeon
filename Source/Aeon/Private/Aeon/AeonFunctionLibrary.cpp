@@ -88,7 +88,8 @@ bool UAeonFunctionLibrary::TryActivateRandomSingleAbilityByTag(UAbilitySystemCom
         UE_LOGFMT(LogAeon,
                   Warning,
                   "TryActivateRandomSingleAbilityByTag invoked with empty tag on actor '{Actor}'",
-                  AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel());
+                  AbilitySystemComponent ? AbilitySystemComponent->GetOwnerActor()->GetActorNameOrLabel()
+                                         : FString("Unknown"));
         return false;
     }
 }
