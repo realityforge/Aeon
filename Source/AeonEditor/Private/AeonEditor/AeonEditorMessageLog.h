@@ -11,21 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "AeonEditor.h"
+#pragma once
 
-#define LOCTEXT_NAMESPACE "FAeonEditorModule"
+#include "CoreMinimal.h"
 
-void FAeonEditorModule::StartupModule()
+/** The class responsible for managing MessageLog categories used in AeonEditor module. */
+class FAeonEditorMessageLog final
 {
-    FAeonEditorMessageLog::Initialize();
+public:
+    static void Initialize();
 
-}
+    static void Shutdown();
 
-void FAeonEditorModule::ShutdownModule()
-{
-    FAeonEditorMessageLog::Shutdown();
-}
+private:
+    const static FName MessageLogName;
 
-#undef LOCTEXT_NAMESPACE
-
-IMPLEMENT_MODULE(FAeonEditorModule, AeonEditor)
+public:
+    FORCEINLINE static const FName& GetMessageLogName() { return MessageLogName; }
+};

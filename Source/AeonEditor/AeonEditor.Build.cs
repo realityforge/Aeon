@@ -22,6 +22,6 @@ public class AeonEditor : ModuleRules
 
         PublicDependencyModuleNames.AddRange(
             new[] { "Core", "Aeon", "GameplayAbilities", "GameplayTags", "RuleRanger" });
-        PrivateDependencyModuleNames.AddRange(new[] { "CoreUObject", "Engine" });
+        PrivateDependencyModuleNames.AddRange(new[] { "CoreUObject", "Engine", "MessageLog" });
     }
 }
