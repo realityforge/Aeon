@@ -1,16 +1,23 @@
 # Repository Guidelines
 
+## Authoritative Repository
+The canonical source for this plugin is maintained at https://github.com/realityforge/Aeon. Please open pull requests and issues on that repository.
+
+This plugin is sometimes integrated into other repositories via git subtree merge or distributed as a direct download (unzip into `Plugins/Aeon/`). Those copies are mirrors for consumption; treat them as downstream integrations and avoid filing issues/PRs there.
+
 ## Project Structure & Module Organization
 - `Aeon.uplugin` declares modules; each module sits under `Source/<Module>/Public` and `Source/<Module>/Private` so shared headers stay isolated from implementation-only details.
 - Core gameplay helpers live in `Source/Aeon`, AI behaviors in `Source/AeonAI`, animation utilities in `Source/AeonAnimation`, and editor-only tooling in `Source/AeonEditor`.
 - Raw files (such as `.csv` files) from which Unreal assets are imported belong in `SourceContent`, while `Content` is reserved for runtime assets that ship with the plugin.
-- Generated binaries and build artifacts should stay out of version control.
+- Generated binaries and build artifacts should stay out of version control and should stay untouched unless you are troubleshooting a local build.
+- Keep `README.md` aligned with new features so downstream teams stay informed.
 
 ## Tooling & Engine Version
 - Target Unreal Engine 5.6 for both development and verification; earlier engine releases are unsupported.
 
 ## Coding Style & Naming Conventions
 - Follow Unreal Engine defaults: 4-space indentation, PascalCase types, camelCase locals, `FAeon*` for structs, `UAeon*` for UObject classes, and `EAeon*` for enums.
+- Use type deduction (for example, `auto`) when it keeps intent clear and remains within Unreal Engine 5.6’s supported C++ feature set.
 - Place new public headers under `Source/<Module>/Public/<Module>/` and implementation files under the matching `Private` path.
 - Prefer UE logging macros with the `LogAeon` category; declare new categories in module `Private` headers when needed.
 
