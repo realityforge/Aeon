@@ -122,7 +122,7 @@ void AAeonCharacterBase::ConfigureAbilitySystemComponent()
             }
             else
             {
-                check(EAbilitySetLoadPolicy::Sync == AbilitySetLoadPolicy);
+                check(EAbilitySetLoadPolicy::Async == AbilitySetLoadPolicy);
                 GrantAbilitySetToAbilitySystemAsync();
             }
         }
