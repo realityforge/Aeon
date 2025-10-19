@@ -62,8 +62,8 @@ void UAeonGamePhaseSubsystem::RegisterPhaseAbility(const FGameplayTag& PhaseTag,
                       "with ability {Ability} but another ability {Existing} "
                       "is already registered for phase",
                       PhaseTag.GetTagName(),
-                      Ability->GetName(),
-                      PhaseAbilities.FindChecked(PhaseTag)->GetName());
+                      GetNameSafe(Ability),
+                      GetNameSafe(PhaseAbilities.FindChecked(PhaseTag)));
         }
         else
         {
