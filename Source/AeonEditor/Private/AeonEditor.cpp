@@ -12,13 +12,15 @@
  * limitations under the License.
  */
 #include "AeonEditor.h"
+#include "AeonEditor/AeonEditorMessageLog.h"
+#include "AeonEditor/AeonTagCategoryValidator.h"
 
 #define LOCTEXT_NAMESPACE "FAeonEditorModule"
 
 void FAeonEditorModule::StartupModule()
 {
     FAeonEditorMessageLog::Initialize();
-
+    FAeonTagCategoryValidator::ScanGameplayTagCategoryRemapsForMissingCategories();
 }
 
 void FAeonEditorModule::ShutdownModule()

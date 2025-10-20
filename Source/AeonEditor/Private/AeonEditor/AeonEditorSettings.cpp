@@ -12,17 +12,6 @@
  * limitations under the License.
  */
 
-using UnrealBuildTool;
+#include "AeonEditor/AeonEditorSettings.h"
 
-public class AeonEditor : ModuleRules
-{
-    public AeonEditor(ReadOnlyTargetRules Target) : base(Target)
-    {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
-        PublicDependencyModuleNames.AddRange(
-            new[] { "Core", "Aeon", "GameplayAbilities", "GameplayTags", "RuleRanger" });
-        PrivateDependencyModuleNames.AddRange(
-            new[] { "CoreUObject", "DeveloperSettings", "Engine", "MessageLog", "Slate", "SlateCore" });
-    }
-}
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AeonEditorSettings)

@@ -22,6 +22,9 @@ public:
     static void Initialize();
 
     static void Shutdown();
+    static FMessageLog GetMessageLog();
+
+    static void Open();
 
 private:
     const static FName MessageLogName;

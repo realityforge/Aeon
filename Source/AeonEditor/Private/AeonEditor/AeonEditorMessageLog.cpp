@@ -53,3 +53,13 @@ void FAeonEditorMessageLog::Shutdown()
         }
     }
 }
+
+FMessageLog FAeonEditorMessageLog::GetMessageLog()
+{
+    return FMessageLog(GetMessageLogName());
+}
+
+void FAeonEditorMessageLog::Open()
+{
+    GetMessageLog().Open();
+}
