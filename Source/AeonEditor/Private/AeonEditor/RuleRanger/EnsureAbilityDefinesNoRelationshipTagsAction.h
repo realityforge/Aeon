@@ -35,5 +35,5 @@ class UEnsureAbilityDefinesNoRelationshipTagsAction final : public URuleRangerAc
 public:
     virtual void Apply(URuleRangerActionContext* ActionContext, UObject* Object) override;
 
-    virtual UClass* GetExpectedType() override;
+    virtual UClass* GetExpectedType() const override;
 };

@@ -59,7 +59,7 @@ void UEnsureAbilityDefinesNoRelationshipTagsAction::Apply(URuleRangerActionConte
     EnsureEmptyTagContainer(ActionContext, Ability, TargetBlockedTagsName);
 }
 
-UClass* UEnsureAbilityDefinesNoRelationshipTagsAction::GetExpectedType()
+UClass* UEnsureAbilityDefinesNoRelationshipTagsAction::GetExpectedType() const
 {
     return UGameplayAbility::StaticClass();
 }
