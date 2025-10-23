@@ -12,6 +12,7 @@ reasonable assumptions based on patterns present in the code and ask the user to
 reasonable alternatives.
 
 ## Project Structure & Module Organization
+
 - `Aeon.uplugin` declares modules; each module sits under `Source/<Module>/Public` and `Source/<Module>/Private` so shared headers stay isolated from implementation-only details.
 - Core gameplay helpers live in `Source/Aeon`, AI behaviors in `Source/AeonAI`, animation utilities in `Source/AeonAnimation`, and editor-only tooling in `Source/AeonEditor`.
 - Raw files (such as `.csv` files) from which Unreal assets are imported belong in `SourceContent`, while `Content` is reserved for runtime assets that ship with the plugin.
@@ -19,9 +20,11 @@ reasonable alternatives.
 - Keep `README.md` aligned with new features so downstream teams stay informed.
 
 ## Tooling & Engine Version
+
 - Target Unreal Engine 5.6 for both development and verification; earlier engine releases are unsupported.
 
 ## General Principles
+
 - Readability: Write code that is easy to read and understand. Prioritize clarity over overly clever or obscure solutions.
 - Consistency: Strive for consistency in naming, formatting, and architectural patterns throughout the project.
 - Simplicity (KISS): Keep It Simple, Stupid. Avoid unnecessary complexity.
@@ -35,6 +38,7 @@ reasonable alternatives.
 - Error Handling: Implement robust error handling and provide clear feedback to users or logs when errors occur.
 
 ## Coding Style & Naming Conventions
+
 - Follow Unreal Engine defaults: 4-space indentation, PascalCase types, Functions and Variables, `F[StructName]` for structs, `U[ClassName]` for UObject classes, and `E[EnumName]` for enums, `b[BooleanVariable]`.
 - Use type deduction (for example, `auto`) when it keeps intent clear and remains within Unreal Engine 5.6’s supported C++ feature set.
 - Place new public headers under `Source/<Module>/Public/<Module>/` and implementation files under the matching `Private` path.
@@ -44,10 +48,12 @@ reasonable alternatives.
 - Match existing code style when not covered by the above rules.
 
 ## Testing Guidelines
+
 - Automation coverage is aspirational. Capture edge cases in unit-style specs once a testing harness lands under `Source/<Module>/Private/Tests/`.
 - Until formal suites exist, document manual reproduction steps or sample maps in the pull request so reviewers can exercise the change.
 
 ## Commit & Pull Request Guidelines
+
 - Write imperative, present-tense commit messages under 72 characters.
 - Squash noisy work-in-progress commits locally; each change should stand on its own.
 - Open pull requests with a clear summary, reproduction or test notes, and screenshots or GIFs when changes impact in-editor UX.
