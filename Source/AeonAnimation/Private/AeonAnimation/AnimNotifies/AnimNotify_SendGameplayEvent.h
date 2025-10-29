@@ -35,6 +35,8 @@ class UAnimNotify_SendGameplayEvent : public UAnimNotify
 public:
     UAnimNotify_SendGameplayEvent();
 
+    virtual FString GetNotifyName_Implementation() const override;
+
     virtual void Notify(USkeletalMeshComponent* MeshComp,
                         UAnimSequenceBase* Animation,
                         const FAnimNotifyEventReference& EventReference) override;

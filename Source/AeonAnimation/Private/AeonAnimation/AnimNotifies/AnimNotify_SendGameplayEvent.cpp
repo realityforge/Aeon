@@ -24,6 +24,11 @@ UAnimNotify_SendGameplayEvent::UAnimNotify_SendGameplayEvent()
 #endif // WITH_EDITORONLY_DATA
 }
 
+FString UAnimNotify_SendGameplayEvent::GetNotifyName_Implementation() const
+{
+    return FString::Printf(TEXT("→ %s"), *EventTag.GetTagName().ToString());
+}
+
 void UAnimNotify_SendGameplayEvent::Notify(USkeletalMeshComponent* MeshComp,
                                            UAnimSequenceBase* Animation,
                                            const FAnimNotifyEventReference& EventReference)
