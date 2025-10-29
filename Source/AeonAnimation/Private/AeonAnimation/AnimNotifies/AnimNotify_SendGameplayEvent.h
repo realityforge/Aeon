@@ -30,7 +30,7 @@ class UAnimNotify_SendGameplayEvent : public UAnimNotify
 
     /** Tag of the event to send */
     UPROPERTY(EditAnywhere, Category = AnimNotify, meta = (GameplayTagFilter = "GameplayEventTagsCategory"))
-    FGameplayTag EventTag;
+    FGameplayTag EventTag{ FGameplayTag::EmptyTag };
 
 public:
     UAnimNotify_SendGameplayEvent();
