@@ -13,6 +13,7 @@
  */
 #include "Aeon/Subsystems/AeonGameplayAbility_Group.h"
 #include "AbilitySystemComponent.h"
+#include "Aeon/AeonGameplayTags.h"
 #include "Aeon/Logging.h"
 #include "Aeon/Subsystems/GroupAbilitySystem.h"
 #include "Logging/StructuredLog.h"
@@ -23,7 +24,9 @@
 UAeonGameplayAbility_Group::UAeonGameplayAbility_Group(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
-    SetAbilityActivationPolicy(EAeonAbilityActivationPolicy::OnGiven);
+    FGameplayTagContainer GameplayTags = GetAssetTags();
+    GameplayTags.AddTag(AeonGameplayTags::Aeon_Ability_Trait_ActivateOnGiven);
+    SetAssetTags(GameplayTags);
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
 }
 

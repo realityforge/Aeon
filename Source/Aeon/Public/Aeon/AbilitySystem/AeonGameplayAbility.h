@@ -49,8 +49,11 @@ class UE_API UAeonGameplayAbility : public UGameplayAbility
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditDefaultsOnly, Category = "Aeon|Ability")
-    EAeonAbilityActivationPolicy AbilityActivationPolicy{ EAeonAbilityActivationPolicy::OnTriggered };
+    /**
+     * Return true if the ability is configured to activate on given.
+     * An ability is marked as such by adding the AssetTag AeonGameplayTags::Aeon_Ability_Trait_ActivateOnGiven.
+     */
+    bool IsActivateOnGiven() const;
 
     /** If the AbilityActivationPolicy is OnGiven then activate the ability. */
     void MaybeActivateOnGivenAbility(const FGameplayAbilityActorInfo* ActorInfo,
@@ -61,12 +64,6 @@ class UE_API UAeonGameplayAbility : public UGameplayAbility
                                   const FGameplayAbilityActorInfo* ActorInfo) const;
 
 protected:
-    FORCEINLINE EAeonAbilityActivationPolicy GetAbilityActivationPolicy() const { return AbilityActivationPolicy; }
-    FORCEINLINE void SetAbilityActivationPolicy(const EAeonAbilityActivationPolicy InAbilityActivationPolicy)
-    {
-        AbilityActivationPolicy = InAbilityActivationPolicy;
-    }
-
 #pragma region UGameplayAbility Interface
     virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
                             const FGameplayAbilityActorInfo* ActorInfo,

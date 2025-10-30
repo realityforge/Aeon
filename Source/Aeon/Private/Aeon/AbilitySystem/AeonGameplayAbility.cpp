@@ -15,6 +15,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
+#include "Aeon/AeonGameplayTags.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonGameplayAbility)
 
@@ -143,7 +144,7 @@ void UAeonGameplayAbility::MaybeActivateOnGivenAbility(const FGameplayAbilityAct
     // cargo-cult copied this from Lyra or an earlier project. Duplicating this until a later date
     // at which point we can re-assess
 
-    if (EAeonAbilityActivationPolicy::OnGiven == GetAbilityActivationPolicy() && ActorInfo && !Spec.IsActive())
+    if (IsActivateOnGiven() && ActorInfo && !Spec.IsActive())
     {
         if (const auto AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
         {
@@ -172,11 +173,16 @@ void UAeonGameplayAbility::MaybeActivateOnGivenAbility(const FGameplayAbilityAct
     }
 }
 
+bool UAeonGameplayAbility::IsActivateOnGiven() const
+{
+    return GetAssetTags().HasTagExact(AeonGameplayTags::Aeon_Ability_Trait_ActivateOnGiven);
+}
+
 void UAeonGameplayAbility::MaybeClearOnGivenAbility(const FGameplayAbilitySpecHandle Handle,
                                                     const FGameplayAbilityActorInfo* ActorInfo) const
 {
     // If an activation policy is OnGiven then we remove it after the ability completes
-    if (EAeonAbilityActivationPolicy::OnGiven == AbilityActivationPolicy)
+    if (IsActivateOnGiven())
     {
         if (ActorInfo)
         {

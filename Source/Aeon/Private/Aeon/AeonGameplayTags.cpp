@@ -28,4 +28,12 @@ namespace AeonGameplayTags
                                    "If present in an abilities InputTags then pressing "
                                    "the input will toggle activation state")
 
+    // --------------------------------------------------- //
+    // Ability Trait Tags
+    // --------------------------------------------------- //
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Aeon_Ability_Trait_ActivateOnGiven,
+                                   "Aeon.Ability.Trait.ActivateOnGiven",
+                                   "Abilities with this tag will be activated immediately on "
+                                   "being granted to the AbilitySystemComponent.")
 } // namespace AeonGameplayTags

@@ -29,6 +29,13 @@ namespace AeonGameplayTags
     // If present in an abilities InputTags then pressing the input will toggle activation state
     UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ability_Toggle)
 
+    // --------------------------------------------------- //
+    // Ability Trait Tags
+    // --------------------------------------------------- //
+
+    // Abilities with this tag will be activated immediately on being granted to the AbilitySystemComponent.
+    UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Aeon_Ability_Trait_ActivateOnGiven)
+
 } // namespace AeonGameplayTags
 
 #undef UE_API
