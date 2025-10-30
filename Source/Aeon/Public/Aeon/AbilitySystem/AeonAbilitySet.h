@@ -59,6 +59,12 @@ struct FAeonGameplayAbilityEntry
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "InputTagCategory"))
     FGameplayTagContainer InputTags;
 
+    /**
+     * DynamicSpecSourceTags to be added to the ability.
+     */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTagContainer DynamicTags;
+
 #if WITH_EDITOR
 
 private:

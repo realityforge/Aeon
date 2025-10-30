@@ -22,15 +22,23 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAbilitySet)
 
 #if WITH_EDITOR
-static FString GameplayTagContainerToString(const FGameplayTagContainer& TagContainer)
+static FString GameplayTagContainerToString(const bool IsInput, const FGameplayTagContainer& TagContainer)
 {
     TArray<FString> TagNames;
     for (const auto& Tag : TagContainer)
     {
         TagNames.Add(Tag.ToString());
     }
-
-    return FString::Join(TagNames, TEXT(","));
+    if (TagNames.IsEmpty())
+    {
+        return FString("");
+    }
+    else
+    {
+        return FString::Printf(TEXT(" %s<%s>"),
+                               IsInput ? TEXT("Input") : TEXT("Dynamic"),
+                               *FString::Join(TagNames, TEXT(", ")));
+    }
 }
 
 void FAeonGameplayAbilityEntry::InitEditorFriendlyTitleProperty()
@@ -41,18 +49,20 @@ void FAeonGameplayAbilityEntry::InitEditorFriendlyTitleProperty()
         check(Package);
         if (Ability->IsInBlueprint())
         {
-            EditorFriendlyTitle = FString::Printf(TEXT("%s [%d] %s"),
+            EditorFriendlyTitle = FString::Printf(TEXT("%s [%d]%s%s"),
                                                   *FPackageName::GetShortName(Package),
                                                   Level,
-                                                  *GameplayTagContainerToString(InputTags));
+                                                  *GameplayTagContainerToString(true, InputTags),
+                                                  *GameplayTagContainerToString(false, DynamicTags));
         }
         else
         {
-            EditorFriendlyTitle = FString::Printf(TEXT("%s.%s [%d] %s"),
+            EditorFriendlyTitle = FString::Printf(TEXT("%s.%s [%d]%s%s"),
                                                   *FPackageName::GetShortName(Package),
                                                   *Ability->GetName(),
                                                   Level,
-                                                  *GameplayTagContainerToString(InputTags));
+                                                  *GameplayTagContainerToString(true, InputTags),
+                                                  *GameplayTagContainerToString(false, DynamicTags));
         }
     }
     else
@@ -243,6 +253,11 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
                 {
                     // Only add tag if it is valid
                     AbilitySpec.GetDynamicSpecSourceTags().AddTag(InputTag);
+                }
+
+                if (!Entry.DynamicTags.IsEmpty())
+                {
+                    AbilitySpec.GetDynamicSpecSourceTags().AppendTags(Entry.DynamicTags);
                 }
 
                 // ReSharper disable once CppTooWideScopeInitStatement
