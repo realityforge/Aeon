@@ -92,6 +92,9 @@ void FAeonTagCategoryValidator::ScanGameplayTagCategoryRemapsForMissingCategorie
                 *FString::Join(Category->DefaultTargets, TEXT(", "))))));
         });
 
+    // TODO: We should check that the remap entries are sorted alphabetically and allow the user to sort them via an
+    // action if necessary
+
     if (bMissing)
     {
         const auto MessageLog = FAeonEditorMessageLog::GetMessageLog().Error();
