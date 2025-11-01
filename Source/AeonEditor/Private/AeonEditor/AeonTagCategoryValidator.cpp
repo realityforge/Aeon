@@ -47,7 +47,7 @@ void FAeonTagCategoryValidator::AddDefaultRemaps()
             Settings->SaveConfig();
             Settings->TryUpdateDefaultConfigFile();
         },
-        [](auto, auto CategoryName, auto Row) {});
+        [](auto, auto, auto) {});
 
     if (!RemapsCreated.IsEmpty())
     {
