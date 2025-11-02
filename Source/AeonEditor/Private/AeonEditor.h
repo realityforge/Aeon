@@ -18,15 +18,4 @@
 
 class FAeonEditorModule final : public IModuleInterface
 {
-public:
-    /** IModuleInterface implementation */
-    virtual void StartupModule() override;
-    virtual void ShutdownModule() override;
-
-private:
-    /** Handle for pre-save delegate registration */
-    FDelegateHandle PreSaveHandle;
-
-    /** Sorts FAeonTagCategoryRow.DefaultTargets before DataTable save */
-    void HandlePreObjectSave(UObject* Object, FObjectPreSaveContext SaveContext);
 };
