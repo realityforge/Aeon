@@ -66,7 +66,7 @@ void AAeonCharacterBase::GrantAbilitySetToAbilitySystemSync()
     if (const auto Data = AbilitySet.LoadSynchronous())
     {
         GrantAbilitySet(Data);
-        OnAbilitySystemComponentInitialized();
+        PostInitializeAbilitySystem();
     }
     else
     {
@@ -87,7 +87,7 @@ void AAeonCharacterBase::GrantAbilitySetToAbilitySystemAsync()
             if (const auto Data = AbilitySet.Get())
             {
                 GrantAbilitySet(Data);
-                OnAbilitySystemComponentInitialized();
+                PostInitializeAbilitySystem();
             }
             else
             {
@@ -128,5 +128,3 @@ void AAeonCharacterBase::ConfigureAbilitySystemComponent()
         }
     }
 }
-
-void AAeonCharacterBase::OnAbilitySystemComponentInitialized() {}

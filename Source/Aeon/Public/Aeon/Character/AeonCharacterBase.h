@@ -70,8 +70,6 @@ protected:
 
     virtual int32 GetAbilityLevel() const;
 
-    virtual void OnAbilitySystemComponentInitialized();
-
 #pragma region AModularGasCharacter
     virtual void ConfigureAbilitySystemComponent() override;
 #pragma endregion
