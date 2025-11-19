@@ -16,6 +16,8 @@
 #include "Aeon/Logging.h"
 #include "Logging/StructuredLog.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AeonAttributeSetBase)
+
 void UAeonAttributeSetBase::AddTagBasedOnValueRelativeToThreshold(const FGameplayAttribute& Attribute,
                                                                   const FGameplayTag& Tag,
                                                                   const float Value,

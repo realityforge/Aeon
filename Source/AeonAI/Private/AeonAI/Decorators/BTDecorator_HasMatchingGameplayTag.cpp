@@ -18,6 +18,8 @@
 #include "BehaviorTree/BTTaskNode.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(BTDecorator_HasMatchingGameplayTag)
+
 UBTDecorator_HasMatchingGameplayTag::UBTDecorator_HasMatchingGameplayTag()
 {
     NodeName = "Has Matching Gameplay Tag";
