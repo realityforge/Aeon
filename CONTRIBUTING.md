@@ -25,6 +25,12 @@ When submitting pull requests, make sure to do the following:
 - Remove trailing whitespace. Many editors will do this automatically.
 - Ensure any new files have [a trailing newline](https://stackoverflow.com/questions/5813311/no-newline-at-end-of-file)
 
+### Linting
+
+- Run `python3 Scripts/check_inline_generated_cpp_includes.py` to verify that for any header including `*.generated.h`,
+  the matching implementation includes `#include UE_INLINE_GENERATED_CPP_BY_NAME(<BaseName>)` and that it appears after
+  all other `#include` directives.
+
 ## How to speed the merging of pull requests
 
 * Describe your changes in the CHANGELOG.md (if present).
