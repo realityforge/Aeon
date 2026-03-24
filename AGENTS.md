@@ -50,6 +50,7 @@ reasonable alternatives.
 ## Testing Guidelines
 
 - Automation coverage is aspirational. Capture edge cases in unit-style specs once a testing harness lands under `Source/<Module>/Private/Tests/`.
+- Place C++ automation tests under `Source/<Module>/Private/Tests/` and mirror the implementation subpath beneath that folder. For example, tests for `Source/Aeon/Private/Aeon/Input/AeonInputConfig.cpp` belong in `Source/Aeon/Private/Tests/Aeon/Input/AeonInputConfigTests.cpp`.
 - Until formal suites exist, document manual reproduction steps or sample maps in the pull request so reviewers can exercise the change.
 
 ## Commit & Pull Request Guidelines
