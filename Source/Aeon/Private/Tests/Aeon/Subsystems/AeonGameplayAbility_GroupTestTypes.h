@@ -11,17 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-using UnrealBuildTool;
+#include "Aeon/Subsystems/AeonGameplayAbility_Group.h"
+#include "AeonGameplayAbility_GroupTestTypes.generated.h"
 
-public class AeonAnimation : ModuleRules
+UCLASS(Abstract, NotBlueprintable)
+class UAeonTestAbstractGameplayAbility_Group final : public UAeonGameplayAbility_Group
 {
-    public AeonAnimation(ReadOnlyTargetRules Target) : base(Target)
-    {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+    GENERATED_BODY()
+};
 
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "GameplayTags" });
-        PrivateDependencyModuleNames.AddRange(
-            new[] { "CoreUObject", "Engine", "GameplayAbilities", "GameplayTasks", "Aeon" });
-    }
-}
+UCLASS(NotBlueprintable)
+class UAeonTestConcreteGameplayAbility_Group final : public UAeonGameplayAbility_Group
+{
+    GENERATED_BODY()
+};

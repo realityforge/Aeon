@@ -27,7 +27,7 @@
 
 void FAttributeToBlackboardRuntimeData::Reset()
 {
-    LastKnownValue = TNumericLimits<float>::Lowest();
+    LastKnownValue = std::numeric_limits<float>::quiet_NaN();
     DelegateHandle.Reset();
     BlackboardKeyID = FBlackboard::InvalidKey;
     EntryType = EAttributesToBlackboard_EntryType::Unknown;
@@ -93,7 +93,7 @@ void UBTService_AttributesToBlackboard::InitializeFromAsset(UBehaviorTree& Asset
     Super::InitializeFromAsset(Asset);
     if (const auto BBAsset = GetBlackboardAsset())
     {
-        for (auto Mapping : Mappings)
+        for (auto& Mapping : Mappings)
         {
             Mapping.BlackboardKey.ResolveSelectedKey(*BBAsset);
         }
@@ -145,7 +145,7 @@ void UBTService_AttributesToBlackboard::CacheBlackboardProperties(UBehaviorTreeC
         {
             for (auto i = 0; i < Mappings.Num(); i++)
             {
-                auto BlackboardKey = Mappings[i].BlackboardKey;
+                auto& BlackboardKey = Mappings[i].BlackboardKey;
                 if (BlackboardKey.NeedsResolving())
                 {
                     BlackboardKey.ResolveSelectedKey(*BlackboardAsset);
@@ -348,6 +348,11 @@ void UBTService_AttributesToBlackboard::ApplyMissingPolicy()
 bool UBTService_AttributesToBlackboard::IsAttributeValueNearlyEqual(const FAttributeToBlackboardRuntimeData& Data,
                                                                     const float Value) const
 {
+    if (!FMath::IsFinite(Data.LastKnownValue))
+    {
+        return false;
+    }
+
     // Compare after converting the attribute value to the target Blackboard entry type.
     if (EAttributesToBlackboard_EntryType::Int == Data.EntryType)
     {

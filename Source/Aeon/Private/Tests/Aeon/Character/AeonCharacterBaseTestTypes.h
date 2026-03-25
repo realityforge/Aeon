@@ -11,17 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-using UnrealBuildTool;
+#include "Aeon/Character/AeonCharacterBase.h"
+#include "AeonCharacterBaseTestTypes.generated.h"
 
-public class AeonAnimation : ModuleRules
+UCLASS(Abstract, NotBlueprintable)
+class AAeonTestAbstractCharacterBase : public AAeonCharacterBase
 {
-    public AeonAnimation(ReadOnlyTargetRules Target) : base(Target)
-    {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+    GENERATED_BODY()
+};
 
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "GameplayTags" });
-        PrivateDependencyModuleNames.AddRange(
-            new[] { "CoreUObject", "Engine", "GameplayAbilities", "GameplayTasks", "Aeon" });
-    }
-}
+UCLASS(NotBlueprintable)
+class AAeonTestConcreteCharacterBase final : public AAeonCharacterBase
+{
+    GENERATED_BODY()
+};

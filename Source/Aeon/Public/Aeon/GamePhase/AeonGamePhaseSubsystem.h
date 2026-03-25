@@ -20,6 +20,7 @@
 
 class UAbilitySystemComponent;
 class UGameplayAbility;
+struct FAeonGamePhaseSubsystemTestAccess;
 
 /**
  * Subsystem for managing GamePhases using Gameplay Tags.
@@ -41,6 +42,8 @@ UCLASS()
 class UAeonGamePhaseSubsystem final : public UWorldSubsystem
 {
     GENERATED_BODY()
+
+    friend struct FAeonGamePhaseSubsystemTestAccess;
 
     /** The current GamePhase. */
     UPROPERTY()

@@ -395,6 +395,7 @@ EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Conte
         // ReSharper disable once CppUseStructuredBinding
         // ReSharper disable once CppTooWideScopeInitStatement
         const auto& Entry = AttributeValues[Index];
+        const bool bAttributeIsValid = Entry.Attribute.IsValid();
         if (!Entry.Attribute.IsValid())
         {
             Context.AddError(FText::FromString(
@@ -408,19 +409,20 @@ EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Conte
             Result = EDataValidationResult::Invalid;
         }
         bool bAttributeFound = false;
+        const UClass* AttributeSetClass = bAttributeIsValid ? Entry.Attribute.GetAttributeSetClass() : nullptr;
 
         for (int32 AttributeSetIndex = 0; AttributeSetIndex < AttributeSets.Num(); ++AttributeSetIndex)
         {
             // ReSharper disable once CppUseStructuredBinding
             // ReSharper disable once CppTooWideScopeInitStatement
             const auto& AttributeSetEntry = AttributeSets[AttributeSetIndex];
-            if (IsValid(AttributeSetEntry.AttributeSet)
-                && AttributeSetEntry.AttributeSet.Get() == Entry.Attribute.GetAttributeSetClass())
+            if (AttributeSetClass && IsValid(AttributeSetEntry.AttributeSet)
+                && AttributeSetEntry.AttributeSet.Get() == AttributeSetClass)
             {
                 bAttributeFound = true;
             }
         }
-        if (!bAttributeFound)
+        if (AttributeSetClass && !bAttributeFound)
         {
             Context.AddError(
                 FText::FromString(FString::Printf(TEXT("AttributeValues[%d].Attribute named '%s' references an "
@@ -428,7 +430,7 @@ EDataValidationResult UAeonAbilitySet::IsDataValid(FDataValidationContext& Conte
                                                        "defined in the AttributeSets property"),
                                                   Index,
                                                   *Entry.Attribute.GetName(),
-                                                  *Entry.Attribute.GetAttributeSetClass()->GetName())));
+                                                  *AttributeSetClass->GetName())));
             Result = EDataValidationResult::Invalid;
         }
     }

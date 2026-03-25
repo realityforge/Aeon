@@ -123,7 +123,7 @@ void UGroupAbilitySystemComponentRegistry::RegisterAbilitySystemComponent(
     bool bAdded = false;
     if (bImplicit)
     {
-        if (!ensureAlways(!AbilitySystemComponents.Contains(AbilitySystemComponent)))
+        if (AbilitySystemComponents.Contains(AbilitySystemComponent))
         {
             UE_LOGFMT(LogAeon,
                       Error,
@@ -131,7 +131,7 @@ void UGroupAbilitySystemComponentRegistry::RegisterAbilitySystemComponent(
                       "is already explicitly registered. A child group has attempted to add the "
                       "same AbilitySystemComponent as current group");
         }
-        else if (ensureAlways(!ImplicitAbilitySystemComponents.Contains(AbilitySystemComponent)))
+        else if (!ImplicitAbilitySystemComponents.Contains(AbilitySystemComponent))
         {
             ImplicitAbilitySystemComponents.AddUnique(AbilitySystemComponent);
             bAdded = true;
@@ -147,7 +147,7 @@ void UGroupAbilitySystemComponentRegistry::RegisterAbilitySystemComponent(
     }
     else
     {
-        if (!ensureAlways(!ImplicitAbilitySystemComponents.Contains(AbilitySystemComponent)))
+        if (ImplicitAbilitySystemComponents.Contains(AbilitySystemComponent))
         {
             UE_LOGFMT(LogAeon,
                       Error,
@@ -155,7 +155,7 @@ void UGroupAbilitySystemComponentRegistry::RegisterAbilitySystemComponent(
                       "is already implicitly registered. A child group has already already registered "
                       "the same AbilitySystemComponent as the current group");
         }
-        else if (ensureAlways(!AbilitySystemComponents.Contains(AbilitySystemComponent)))
+        else if (!AbilitySystemComponents.Contains(AbilitySystemComponent))
         {
             AbilitySystemComponents.AddUnique(AbilitySystemComponent);
             bAdded = true;

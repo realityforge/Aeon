@@ -20,6 +20,7 @@
 
 class UAbilitySystemComponent;
 class UBlackboardComponent;
+struct FBTService_AttributesToBlackboardTestAccess;
 
 /** How the service updates blackboard values. */
 UENUM(BlueprintType)
@@ -123,6 +124,8 @@ UCLASS(meta = (DisplayName = "Attributes → Blackboard"))
 class UBTService_AttributesToBlackboard : public UBTService
 {
     GENERATED_BODY()
+
+    friend struct FBTService_AttributesToBlackboardTestAccess;
 
 public:
     UBTService_AttributesToBlackboard();

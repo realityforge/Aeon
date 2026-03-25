@@ -25,6 +25,7 @@ class UGroupAbilitySystemComponentRegistry;
 class UGameplayAbility;
 class UGameplayEffect;
 class UObject;
+struct FGroupAbilitySystemTestAccess;
 
 /**
  * A world subsystem that allows you to apply Abilities and Effects to groups of ASCs registered with the subsystem.
@@ -44,6 +45,8 @@ UCLASS(MinimalAPI)
 class UGroupAbilitySystem final : public UWorldSubsystem
 {
     GENERATED_BODY()
+
+    friend struct FGroupAbilitySystemTestAccess;
 
     /** A map of effects applied globally. */
     UPROPERTY()

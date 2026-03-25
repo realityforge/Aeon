@@ -156,6 +156,7 @@ void UAeonGamePhaseSubsystem::DeactivatePhaseAbility(UAbilitySystemComponent* Ab
         if (const auto Handle = ActivePhases.Find(PhaseTag))
         {
             AbilitySystemComponent->CancelAbilityHandle(*Handle);
+            ActivePhases.Remove(PhaseTag);
         }
         else
         {

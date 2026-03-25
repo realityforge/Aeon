@@ -18,130 +18,58 @@
     #include "EnhancedInput/Public/InputMappingContext.h"
     #include "GameplayTagContainer.h"
     #include "Misc/AutomationTest.h"
-    #include "Misc/DataValidation.h"
     #include "NativeGameplayTags.h"
-    #include "UObject/UnrealType.h"
+    #include "Tests/Aeon/AeonAutomationTestHelpers.h"
 
 namespace AeonInputConfigTests
 {
-    constexpr auto AutomationTestFlags =
-        EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter;
-
     UE_DEFINE_GAMEPLAY_TAG_STATIC(TestNativeInputTag, "Input.Test.Native");
     UE_DEFINE_GAMEPLAY_TAG_STATIC(TestAbilityInputTag, "Input.Test.Ability");
     UE_DEFINE_GAMEPLAY_TAG_STATIC(TestUnknownInputTag, "Input.Test.Unknown");
 
-    template <typename TObject>
-    TObject* NewTransientObject(UObject* Outer = GetTransientPackage())
-    {
-        return NewObject<TObject>(Outer, NAME_None, RF_Transient);
-    }
-
-    template <typename TObject, typename TValue>
-    bool SetPropertyValue(FAutomationTestBase& Test, TObject* Object, const TCHAR* PropertyName, const TValue& Value)
-    {
-        const auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
-        if (Test.TestNotNull(FString::Printf(TEXT("Property %s should exist"), PropertyName), Property))
-        {
-            auto ValuePtr = Property->template ContainerPtrToValuePtr<TValue>(Object);
-            if (Test.TestNotNull(FString::Printf(TEXT("Property %s should be writable"), PropertyName), ValuePtr))
-            {
-                *ValuePtr = Value;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    FDataValidationContext CreateValidationContext()
-    {
-        return FDataValidationContext(true, EDataValidationUsecase::Manual, TConstArrayView<FAssetData>{});
-    }
-
-    bool ValidationContextContainsIssue(const FDataValidationContext& Context, const FString& ExpectedFragment)
-    {
-        for (const auto& Issue : Context.GetIssues())
-        {
-            if (Issue.Message.ToString().Contains(ExpectedFragment))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    bool TestValidation(FAutomationTestBase& Test,
-                        const UObject* Object,
-                        const EDataValidationResult ExpectedResult,
-                        const TCHAR* ExpectedIssueFragment = nullptr)
-    {
-        auto Context = CreateValidationContext();
-        const auto ActualResult = Object->IsDataValid(Context);
-        const auto bResultMatches =
-            Test.TestEqual(TEXT("Validation result should match expectation"), ActualResult, ExpectedResult);
-        if (!ExpectedIssueFragment)
-        {
-            return bResultMatches;
-        }
-        else
-        {
-            return Test.TestTrue(FString::Printf(TEXT("Validation issues should contain '%s'"), ExpectedIssueFragment),
-                                 ValidationContextContainsIssue(Context, ExpectedIssueFragment))
-                && bResultMatches;
-        }
-    }
-
     UAeonInputConfig* CreateValidInputConfig(FAutomationTestBase& Test)
     {
-        const auto InputConfig = NewTransientObject<UAeonInputConfig>();
+        const auto InputConfig = AeonTests::NewTransientObject<UAeonInputConfig>();
         Test.TestNotNull(TEXT("Input config should be created"), InputConfig);
 
         TArray<FAeonNativeInputAction> NativeInputActions;
         FAeonNativeInputAction NativeInputAction;
         NativeInputAction.InputTag = TestNativeInputTag;
-        NativeInputAction.InputAction = NewTransientObject<UInputAction>(InputConfig);
+        NativeInputAction.InputAction = AeonTests::NewTransientObject<UInputAction>(InputConfig);
         NativeInputActions.Add(NativeInputAction);
 
         TArray<FAeonAbilityInputAction> AbilityInputActions;
         FAeonAbilityInputAction AbilityInputAction;
         AbilityInputAction.InputTag = TestAbilityInputTag;
-        AbilityInputAction.InputAction = NewTransientObject<UInputAction>(InputConfig);
+        AbilityInputAction.InputAction = AeonTests::NewTransientObject<UInputAction>(InputConfig);
         AbilityInputActions.Add(AbilityInputAction);
 
         Test.TestTrue(TEXT("Should set DefaultMappingContext"),
-                      SetPropertyValue(Test,
-                                       InputConfig,
-                                       TEXT("DefaultMappingContext"),
-                                       NewTransientObject<UInputMappingContext>()));
+                      AeonTests::SetPropertyValue(Test,
+                                                  InputConfig,
+                                                  TEXT("DefaultMappingContext"),
+                                                  AeonTests::NewTransientObject<UInputMappingContext>()));
         Test.TestTrue(TEXT("Should set NativeInputActions"),
-                      SetPropertyValue(Test, InputConfig, TEXT("NativeInputActions"), NativeInputActions));
+                      AeonTests::SetPropertyValue(Test, InputConfig, TEXT("NativeInputActions"), NativeInputActions));
         Test.TestTrue(TEXT("Should set AbilityInputActions"),
-                      SetPropertyValue(Test, InputConfig, TEXT("AbilityInputActions"), AbilityInputActions));
+                      AeonTests::SetPropertyValue(Test, InputConfig, TEXT("AbilityInputActions"), AbilityInputActions));
         return InputConfig;
     }
 } // namespace AeonInputConfigTests
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigFindNativeInputActionByTagMatchingTagTest,
                                  "Aeon.InputConfig.FindNativeInputActionByTag.MatchingTag",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigFindNativeInputActionByTagMatchingTagTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
-    const auto* Result = InputConfig->FindNativeInputActionByTag(AeonInputConfigTests::TestNativeInputTag);
+    const auto Result = InputConfig->FindNativeInputActionByTag(AeonInputConfigTests::TestNativeInputTag);
     return TestNotNull(TEXT("Matching tag should return the configured input action"), Result);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigFindNativeInputActionByTagUnknownTagTest,
                                  "Aeon.InputConfig.FindNativeInputActionByTag.UnknownTag",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigFindNativeInputActionByTagUnknownTagTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
@@ -151,37 +79,36 @@ bool FAeonInputConfigFindNativeInputActionByTagUnknownTagTest::RunTest(const FSt
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigValidationValidConfigTest,
                                  "Aeon.Validation.InputConfig.ValidConfig",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigValidationValidConfigTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
-    return AeonInputConfigTests::TestValidation(*this, InputConfig, EDataValidationResult::Valid);
+    return AeonTests::TestValidation(*this, InputConfig, EDataValidationResult::Valid);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigValidationNativeInputTagInvalidTest,
                                  "Aeon.Validation.InputConfig.NativeInputTagInvalid",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigValidationNativeInputTagInvalidTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
 
     TArray<FAeonNativeInputAction> NativeInputActions;
     FAeonNativeInputAction NativeInputAction;
-    NativeInputAction.InputAction = AeonInputConfigTests::NewTransientObject<UInputAction>(InputConfig);
+    NativeInputAction.InputAction = AeonTests::NewTransientObject<UInputAction>(InputConfig);
     NativeInputActions.Add(NativeInputAction);
-    TestTrue(
-        TEXT("Should set NativeInputActions"),
-        AeonInputConfigTests::SetPropertyValue(*this, InputConfig, TEXT("NativeInputActions"), NativeInputActions));
+    TestTrue(TEXT("Should set NativeInputActions"),
+             AeonTests::SetPropertyValue(*this, InputConfig, TEXT("NativeInputActions"), NativeInputActions));
 
-    return AeonInputConfigTests::TestValidation(*this,
-                                                InputConfig,
-                                                EDataValidationResult::Invalid,
-                                                TEXT("NativeInputActions[0].InputTag is invalid"));
+    return AeonTests::TestValidation(*this,
+                                     InputConfig,
+                                     EDataValidationResult::Invalid,
+                                     TEXT("NativeInputActions[0].InputTag is invalid"));
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigValidationNativeInputActionInvalidTest,
                                  "Aeon.Validation.InputConfig.NativeInputActionInvalid",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigValidationNativeInputActionInvalidTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
@@ -190,40 +117,38 @@ bool FAeonInputConfigValidationNativeInputActionInvalidTest::RunTest(const FStri
     FAeonNativeInputAction NativeInputAction;
     NativeInputAction.InputTag = AeonInputConfigTests::TestNativeInputTag;
     NativeInputActions.Add(NativeInputAction);
-    TestTrue(
-        TEXT("Should set NativeInputActions"),
-        AeonInputConfigTests::SetPropertyValue(*this, InputConfig, TEXT("NativeInputActions"), NativeInputActions));
+    TestTrue(TEXT("Should set NativeInputActions"),
+             AeonTests::SetPropertyValue(*this, InputConfig, TEXT("NativeInputActions"), NativeInputActions));
 
-    return AeonInputConfigTests::TestValidation(*this,
-                                                InputConfig,
-                                                EDataValidationResult::Invalid,
-                                                TEXT("NativeInputActions[0].InputAction is invalid"));
+    return AeonTests::TestValidation(*this,
+                                     InputConfig,
+                                     EDataValidationResult::Invalid,
+                                     TEXT("NativeInputActions[0].InputAction is invalid"));
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigValidationAbilityInputTagInvalidTest,
                                  "Aeon.Validation.InputConfig.AbilityInputTagInvalid",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigValidationAbilityInputTagInvalidTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
 
     TArray<FAeonAbilityInputAction> AbilityInputActions;
     FAeonAbilityInputAction AbilityInputAction;
-    AbilityInputAction.InputAction = AeonInputConfigTests::NewTransientObject<UInputAction>(InputConfig);
+    AbilityInputAction.InputAction = AeonTests::NewTransientObject<UInputAction>(InputConfig);
     AbilityInputActions.Add(AbilityInputAction);
-    TestTrue(
-        TEXT("Should set AbilityInputActions"),
-        AeonInputConfigTests::SetPropertyValue(*this, InputConfig, TEXT("AbilityInputActions"), AbilityInputActions));
+    TestTrue(TEXT("Should set AbilityInputActions"),
+             AeonTests::SetPropertyValue(*this, InputConfig, TEXT("AbilityInputActions"), AbilityInputActions));
 
-    return AeonInputConfigTests::TestValidation(*this,
-                                                InputConfig,
-                                                EDataValidationResult::Invalid,
-                                                TEXT("AbilityInputActions[0].InputTag is invalid"));
+    return AeonTests::TestValidation(*this,
+                                     InputConfig,
+                                     EDataValidationResult::Invalid,
+                                     TEXT("AbilityInputActions[0].InputTag is invalid"));
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonInputConfigValidationAbilityInputActionInvalidTest,
                                  "Aeon.Validation.InputConfig.AbilityInputActionInvalid",
-                                 AeonInputConfigTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags)
 bool FAeonInputConfigValidationAbilityInputActionInvalidTest::RunTest(const FString&)
 {
     const auto InputConfig = AeonInputConfigTests::CreateValidInputConfig(*this);
@@ -232,14 +157,13 @@ bool FAeonInputConfigValidationAbilityInputActionInvalidTest::RunTest(const FStr
     FAeonAbilityInputAction AbilityInputAction;
     AbilityInputAction.InputTag = AeonInputConfigTests::TestAbilityInputTag;
     AbilityInputActions.Add(AbilityInputAction);
-    TestTrue(
-        TEXT("Should set AbilityInputActions"),
-        AeonInputConfigTests::SetPropertyValue(*this, InputConfig, TEXT("AbilityInputActions"), AbilityInputActions));
+    TestTrue(TEXT("Should set AbilityInputActions"),
+             AeonTests::SetPropertyValue(*this, InputConfig, TEXT("AbilityInputActions"), AbilityInputActions));
 
-    return AeonInputConfigTests::TestValidation(*this,
-                                                InputConfig,
-                                                EDataValidationResult::Invalid,
-                                                TEXT("AbilityInputActions[0].InputAction is invalid"));
+    return AeonTests::TestValidation(*this,
+                                     InputConfig,
+                                     EDataValidationResult::Invalid,
+                                     TEXT("AbilityInputActions[0].InputAction is invalid"));
 }
 
 #endif
