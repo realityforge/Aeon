@@ -19,6 +19,21 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AeonGameplayAbility)
 
+namespace
+{
+    const UAeonGameplayAbility* GetPolicySourceAbility(const UAeonGameplayAbility* Ability)
+    {
+        if (!Ability)
+        {
+            return nullptr;
+        }
+
+        return Ability->HasAnyFlags(RF_ClassDefaultObject)
+            ? Ability
+            : Ability->GetClass()->GetDefaultObject<UAeonGameplayAbility>();
+    }
+} // namespace
+
 void UAeonGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
     Super::OnGiveAbility(ActorInfo, Spec);
@@ -175,7 +190,9 @@ void UAeonGameplayAbility::MaybeActivateOnGivenAbility(const FGameplayAbilityAct
 
 bool UAeonGameplayAbility::IsActivateOnGiven() const
 {
-    return GetAssetTags().HasTagExact(AeonGameplayTags::Aeon_Ability_Trait_ActivateOnGiven);
+    const auto PolicySourceAbility = GetPolicySourceAbility(this);
+    return PolicySourceAbility
+        && PolicySourceAbility->GetAssetTags().HasTagExact(AeonGameplayTags::Aeon_Ability_Trait_ActivateOnGiven);
 }
 
 void UAeonGameplayAbility::MaybeClearOnGivenAbility(const FGameplayAbilitySpecHandle Handle,

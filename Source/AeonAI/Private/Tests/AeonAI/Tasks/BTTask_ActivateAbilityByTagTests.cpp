@@ -146,6 +146,13 @@ bool FBTTaskActivateAbilityByTagFailsForInvalidBlackboardValueTest::RunTest(cons
                                      BTTaskActivateAbilityByTagTests::CreateBlackboardData(),
                                      TEXT("AeonAITaskActivateAbilityByTagInvalidBlackboardValueTestWorld")))
     {
+        AddExpectedError(TEXT("ActivateAbilityByTag task failed: Blackboard key"),
+                         EAutomationExpectedErrorFlags::Contains,
+                         1);
+        AddExpectedError(TEXT("ActivateAbilityByTag task failed: Resolved tag is invalid"),
+                         EAutomationExpectedErrorFlags::Contains,
+                         1);
+
         const auto Task = AeonAITests::NewTransientObject<UBTTask_ActivateAbilityByTagTestNode>();
         Task->SetAbilityTagSourceForTest(EAeonAbilityTagSource::FromBlackboard);
         Task->SetAbilityTagKeyForTest(BTTaskActivateAbilityByTagTests::AbilityTagKeyName);
@@ -192,6 +199,9 @@ bool FBTTaskActivateAbilityByTagFailsWithoutAbilitySystemComponentTest::RunTest(
     const auto Task = AeonAITests::NewTransientObject<UBTTask_ActivateAbilityByTagTestNode>();
     Task->SetAbilityTagSourceForTest(EAeonAbilityTagSource::FromProperty);
     Task->SetAbilityTagForTest(AbilityTag);
+    AddExpectedError(TEXT("ActivateAbilityByTag task failed: no AbilitySystemComponent found on Pawn"),
+                     EAutomationExpectedErrorFlags::Contains,
+                     1);
 
     return TestEqual(TEXT("Task should fail when the controlled pawn has no ASC"),
                      Task->ExecuteTask(*BehaviorTreeComponent, nullptr),

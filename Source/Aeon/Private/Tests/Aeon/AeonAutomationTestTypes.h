@@ -75,14 +75,40 @@ public:
         NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
     }
 
+    static void ResetMutableStateForTest()
+    {
+        auto* Ability = GetMutableDefault<ThisClass>();
+        check(Ability);
+
+        Ability->SetAssetTagsForTest(FGameplayTagContainer());
+        Ability->ActivationRequiredTags.Reset();
+        Ability->ActivationBlockedTags.Reset();
+        Ability->SourceRequiredTags.Reset();
+        Ability->SourceBlockedTags.Reset();
+        Ability->TargetRequiredTags.Reset();
+        Ability->TargetBlockedTags.Reset();
+        Ability->NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+        Ability->InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    }
+
     static void ResetCounters()
     {
         ActivationCount = 0;
         EndCount = 0;
         bLastEndWasCancelled = false;
+        ResetMutableStateForTest();
     }
 
-    void SetAssetTagsForTest(const FGameplayTagContainer& Tags) { SetAssetTags(Tags); }
+    void SetAssetTagsForTest(const FGameplayTagContainer& Tags)
+    {
+        PRAGMA_DISABLE_DEPRECATION_WARNINGS
+        AbilityTags = Tags;
+        PRAGMA_ENABLE_DEPRECATION_WARNINGS
+
+        auto& AssetTags = EditorGetAssetTags();
+        AssetTags.Reset();
+        AssetTags.AppendTags(Tags);
+    }
 
     void SetActivationRequiredTagsForTest(const FGameplayTagContainer& Tags) { ActivationRequiredTags = Tags; }
 
@@ -225,11 +251,15 @@ namespace AeonTests
     {
         if (Test.TestNotNull(TEXT("Ability-system test actor should expose an Aeon ASC"), AbilitySystemComponent))
         {
-            const auto AttributeSet = NewObject<TAttributeSet>(AbilitySystemComponent, NAME_None, RF_Transient);
-            if (Test.TestNotNull(TEXT("Test attribute set should be created"), AttributeSet))
+            const auto OwnerActor = AbilitySystemComponent->GetOwner();
+            if (Test.TestNotNull(TEXT("Ability-system test actor should own the Aeon ASC"), OwnerActor))
             {
-                AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
-                return AttributeSet;
+                const auto AttributeSet = NewObject<TAttributeSet>(OwnerActor, NAME_None, RF_Transient);
+                if (Test.TestNotNull(TEXT("Test attribute set should be created"), AttributeSet))
+                {
+                    AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
+                    return AttributeSet;
+                }
             }
         }
 

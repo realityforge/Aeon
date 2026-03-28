@@ -205,6 +205,9 @@ bool FBTTaskCancelAbilitiesByTagFailsWithoutAbilitySystemComponentTest::RunTest(
                 const auto Task = AeonAITests::NewTransientObject<UBTTask_CancelAbilitiesByTagTestNode>();
                 Task->SetAbilityTagSourceForTest(EAeonAbilityTagSource::FromProperty);
                 Task->SetAbilityTagForTest(AbilityTag);
+                AddExpectedError(TEXT("CancelAbilitiesByTag task failed: no AbilitySystemComponent found on Pawn"),
+                                 EAutomationExpectedErrorFlags::Contains,
+                                 1);
 
                 return TestEqual(TEXT("Cancel task should fail when the controlled pawn has no ASC"),
                                  Task->ExecuteTask(*BehaviorTreeComponent, nullptr),

@@ -92,12 +92,11 @@ namespace BTServiceAttributesToBlackboardTests
                 OutAbilitySystemComponent = OutPawn->GetAeonAbilitySystemComponent();
                 if (Test.TestNotNull(TEXT("AI pawn should expose an Aeon ASC"), OutAbilitySystemComponent))
                 {
-                    UObject* AttributeSetOuter = OutAbilitySystemComponent;
                     const auto OwnerActor = OutAbilitySystemComponent->GetOwnerActor();
-                    if (!OwnerActor)
+                    if (Test.TestNotNull(TEXT("AI pawn should own the Aeon ASC"), OwnerActor))
                     {
                         const auto AttributeSet =
-                            NewObject<UAeonAITestAttributeSet>(AttributeSetOuter, NAME_None, RF_Transient);
+                            NewObject<UAeonAITestAttributeSet>(OwnerActor, NAME_None, RF_Transient);
                         if (Test.TestNotNull(TEXT("Service test attribute set should be created"), AttributeSet))
                         {
                             OutAbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);

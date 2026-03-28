@@ -14,6 +14,7 @@
 #if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
     #include "Aeon/AbilitySystem/AeonAbilityTagRelationshipMapping.h"
+    #include "Aeon/AeonGameplayTags.h"
     #include "GameplayAbilitySpec.h"
     #include "Misc/AutomationTest.h"
     #include "NativeGameplayTags.h"
@@ -42,6 +43,13 @@ namespace AeonGameplayAbilityTests
             return nullptr;
         }
     }
+
+    FGameplayTagContainer CreateActivateOnGivenTags()
+    {
+        FGameplayTagContainer Tags;
+        Tags.AddTag(AeonGameplayTags::Aeon_Ability_Trait_ActivateOnGiven);
+        return Tags;
+    }
 } // namespace AeonGameplayAbilityTests
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithoutMappingTest,
@@ -53,6 +61,7 @@ bool FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithoutMappingTest::Ru
     if (const auto Actor = AeonGameplayAbilityTests::CreateAbilitySystemActor(*this, World))
     {
         const auto Ability = GetMutableDefault<UAeonAutomationTestGameplayAbility>();
+        UAeonAutomationTestGameplayAbility::ResetMutableStateForTest();
         FGameplayTagContainer AbilityTags;
         AbilityTags.AddTag(AeonGameplayAbilityTests::TestAbilityTag.GetTag());
         FGameplayTagContainer RequiredTags;
@@ -83,6 +92,7 @@ bool FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithMappingExpansionTe
     {
         const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
         const auto Mapping = AeonTests::NewTransientObject<UAeonAbilityTagRelationshipMapping>();
+        UAeonAutomationTestGameplayAbility::ResetMutableStateForTest();
         FAeonAbilityTagRelationship Relationship;
         Relationship.AbilityTag = AeonGameplayAbilityTests::TestAbilityTag.GetTag();
         Relationship.ActivationRequiredTags.AddTag(AeonGameplayAbilityTests::TestMappedRequiredTag.GetTag());
@@ -125,15 +135,18 @@ bool FAeonGameplayAbilityOnGiveAbilityActivateOnGivenActivatesAbilityTest::RunTe
     if (const auto Actor = AeonGameplayAbilityTests::CreateAbilitySystemActor(*this, World))
     {
         UAeonAutomationTestGameplayAbility::ResetCounters();
+        const auto Ability = GetMutableDefault<UAeonAutomationTestGameplayAbility>();
+        Ability->SetAssetTagsForTest(AeonGameplayAbilityTests::CreateActivateOnGivenTags());
         const FGameplayAbilitySpec Spec(UAeonAutomationTestGameplayAbility::StaticClass());
         const auto Handle = Actor->GetAeonAbilitySystemComponent()->GiveAbility(Spec);
         const auto AbilitySpec = Actor->GetAeonAbilitySystemComponent()->FindAbilitySpecFromHandle(Handle);
-
-        return TestNotNull(TEXT("Activate-on-given ability spec should be granted"), AbilitySpec)
+        const bool bResult = TestNotNull(TEXT("Activate-on-given ability spec should be granted"), AbilitySpec)
             && TestTrue(TEXT("Activate-on-given ability should become active when granted"), AbilitySpec->IsActive())
             && TestEqual(TEXT("Activate-on-given should activate the counting test ability once"),
                          UAeonAutomationTestGameplayAbility::ActivationCount,
                          1);
+        UAeonAutomationTestGameplayAbility::ResetMutableStateForTest();
+        return bResult;
     }
     else
     {
@@ -150,6 +163,8 @@ bool FAeonGameplayAbilityEndAbilityClearsActivateOnGivenSpecTest::RunTest(const 
     if (const auto Actor = AeonGameplayAbilityTests::CreateAbilitySystemActor(*this, World))
     {
         UAeonAutomationTestGameplayAbility::ResetCounters();
+        const auto Ability = GetMutableDefault<UAeonAutomationTestGameplayAbility>();
+        Ability->SetAssetTagsForTest(AeonGameplayAbilityTests::CreateActivateOnGivenTags());
         const FGameplayAbilitySpec Spec(UAeonAutomationTestGameplayAbility::StaticClass());
         const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
         const auto Handle = AbilitySystemComponent->GiveAbility(Spec);
@@ -158,15 +173,18 @@ bool FAeonGameplayAbilityEndAbilityClearsActivateOnGivenSpecTest::RunTest(const 
                          && AbilitySystemComponent->FindAbilitySpecFromHandle(Handle)->IsActive()))
         {
             AbilitySystemComponent->CancelAbilityHandle(Handle);
-
-            return TestNull(TEXT("Activate-on-given ability should clear itself from the ASC when it ends"),
-                            AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
+            const bool bResult =
+                TestNull(TEXT("Activate-on-given ability should clear itself from the ASC when it ends"),
+                         AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
                 && TestEqual(TEXT("Cancelling the activate-on-given ability should end it once"),
                              UAeonAutomationTestGameplayAbility::EndCount,
                              1);
+            UAeonAutomationTestGameplayAbility::ResetMutableStateForTest();
+            return bResult;
         }
         else
         {
+            UAeonAutomationTestGameplayAbility::ResetMutableStateForTest();
             return false;
         }
     }
