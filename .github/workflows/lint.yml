@@ -20,5 +20,4 @@ jobs:
           python-version: '3.x'
 
       - name: Run generated-include check
-        run: python3 Scripts/check_inline_generated_cpp_includes.py
-
+        run: python3 bin/check_inline_generated_cpp_includes.py
