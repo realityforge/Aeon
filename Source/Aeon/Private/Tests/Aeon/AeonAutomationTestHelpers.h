@@ -16,12 +16,19 @@
 #if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
     #include "AssetRegistry/AssetData.h"
+    #include "Engine/Blueprint.h"
     #include "Engine/Engine.h"
     #include "Engine/World.h"
     #include "GameFramework/Actor.h"
     #include "GameplayTagContainer.h"
+    #include "HAL/FileManager.h"
+    #include "Kismet2/KismetEditorUtilities.h"
     #include "Misc/AutomationTest.h"
     #include "Misc/DataValidation.h"
+    #include "Misc/Guid.h"
+    #include "Misc/Paths.h"
+    #include "Subsystems/EditorAssetSubsystem.h"
+    #include "UObject/Package.h"
     #include "UObject/UnrealType.h"
 
 namespace AeonTests
@@ -133,6 +140,129 @@ namespace AeonTests
     TObject* NewTransientObject(UObject* Outer = GetTransientPackage())
     {
         return NewObject<TObject>(Outer, NAME_None, RF_Transient);
+    }
+
+    inline const TCHAR* GetAeonTestMountRoot()
+    {
+        return TEXT("/Game/Developers/Tests/Aeon");
+    }
+
+    inline FString GetAeonTestContentRoot()
+    {
+        return FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Developers/Tests/Aeon"));
+    }
+
+    inline bool IsAeonTestPackagePath(const FString& PackagePath)
+    {
+        return PackagePath.StartsWith(GetAeonTestMountRoot(), ESearchCase::CaseSensitive);
+    }
+
+    inline void CleanupAeonTestContentRoot()
+    {
+        if (nullptr != GEditor)
+        {
+            if (auto const Subsystem = GEditor->GetEditorSubsystem<UEditorAssetSubsystem>())
+            {
+                Subsystem->DeleteDirectory(GetAeonTestMountRoot());
+            }
+        }
+
+        IFileManager::Get().DeleteDirectory(*GetAeonTestContentRoot(), false, true);
+    }
+
+    class FAeonTestAssetCleanupRegistrar
+    {
+    public:
+        FAeonTestAssetCleanupRegistrar()
+        {
+            auto& Framework = FAutomationTestFramework::Get();
+            OnTestStartHandle = Framework.OnTestStartEvent.AddStatic(&FAeonTestAssetCleanupRegistrar::HandleTestStart);
+            OnTestEndHandle = Framework.OnTestEndEvent.AddStatic(&FAeonTestAssetCleanupRegistrar::HandleTestEnd);
+        }
+
+        ~FAeonTestAssetCleanupRegistrar()
+        {
+            auto& Framework = FAutomationTestFramework::Get();
+            Framework.OnTestStartEvent.Remove(OnTestStartHandle);
+            Framework.OnTestEndEvent.Remove(OnTestEndHandle);
+            CleanupAeonTestContentRoot();
+        }
+
+    private:
+        static void HandleTestStart(FAutomationTestBase*) { CleanupAeonTestContentRoot(); }
+
+        static void HandleTestEnd(FAutomationTestBase*) { CleanupAeonTestContentRoot(); }
+
+        FDelegateHandle OnTestStartHandle;
+        FDelegateHandle OnTestEndHandle;
+    };
+
+    inline void EnsureTestAssetCleanupRegistered()
+    {
+        static FAeonTestAssetCleanupRegistrar Registrar;
+    }
+
+    inline FString NewUniqueTestPackageName(const TCHAR* const Prefix)
+    {
+        const FString BasePrefix = Prefix ? Prefix : TEXT("AeonTestObject");
+        return FString::Printf(TEXT("%s/%s_%s"),
+                               GetAeonTestMountRoot(),
+                               *BasePrefix,
+                               *FGuid::NewGuid().ToString(EGuidFormats::Digits));
+    }
+
+    inline void EnsurePackageDirectoryExists(const FString& PackageName)
+    {
+        if (IsAeonTestPackagePath(PackageName))
+        {
+            EnsureTestAssetCleanupRegistered();
+            constexpr TCHAR GameRoot[] = TEXT("/Game/");
+            const auto RelativePath = PackageName.RightChop(UE_ARRAY_COUNT(GameRoot) - 1);
+            const auto DirectoryPath = FPaths::GetPath(FPaths::Combine(FPaths::ProjectContentDir(), RelativePath));
+            if (!DirectoryPath.IsEmpty())
+            {
+                IFileManager::Get().MakeDirectory(*DirectoryPath, true);
+            }
+        }
+    }
+
+    inline UPackage* NewTransientPackage(const FString& PackageName)
+    {
+        EnsurePackageDirectoryExists(PackageName);
+        const auto Package = CreatePackage(*PackageName);
+        if (Package)
+        {
+            Package->SetFlags(RF_Transient);
+        }
+        return Package;
+    }
+
+    inline UBlueprint* NewBlueprint(UClass* const ParentClass,
+                                    const FString& PackageName,
+                                    const TCHAR* const ObjectName,
+                                    const EBlueprintType BlueprintType = BPTYPE_Normal)
+    {
+        const auto Package = NewTransientPackage(PackageName);
+        return Package ? FKismetEditorUtilities::CreateBlueprint(ParentClass,
+                                                                 Package,
+                                                                 FName(ObjectName),
+                                                                 BlueprintType,
+                                                                 UBlueprint::StaticClass(),
+                                                                 UBlueprintGeneratedClass::StaticClass(),
+                                                                 NAME_None)
+                       : nullptr;
+    }
+
+    inline void CompileBlueprint(UBlueprint* const Blueprint)
+    {
+        if (Blueprint)
+        {
+            FKismetEditorUtilities::CompileBlueprint(Blueprint, EBlueprintCompileOptions::SkipGarbageCollection);
+            if (const auto Package = Blueprint->GetPackage())
+            {
+                Package->ClearDirtyFlag();
+            }
+        }
     }
 
     template <typename TObject, typename TValue>
