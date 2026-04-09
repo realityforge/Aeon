@@ -27,7 +27,7 @@ void UAeonAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& Tag,
         bool bMatched = false;
         for (auto& AbilitySpec : GetActivatableAbilities())
         {
-            if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag))
+            if (AbilitySpec.Ability && AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag))
             {
                 // ReSharper disable once CppTooWideScopeInitStatement
                 const bool bAbilitySpecIsActive = AbilitySpec.IsActive();

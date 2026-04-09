@@ -127,6 +127,8 @@ public:
         NetExecutionPolicy = Policy;
     }
 
+    void SetIsActiveForTest(const bool bValue) { bIsActive = bValue; }
+
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                  const FGameplayAbilityActorInfo* ActorInfo,
                                  const FGameplayAbilityActivationInfo ActivationInfo,

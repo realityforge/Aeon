@@ -143,9 +143,9 @@ public:
     template <class UserObject, typename CallbackFunc>
     void BindAbilityInputAction(UEnhancedInputComponent* InputComponent,
                                 UserObject* ContextObject,
-                                CallbackFunc InputPressedFunc,
-                                CallbackFunc InputReleasedFunc = nullptr,
-                                CallbackFunc InputHeldFunc = nullptr);
+                                CallbackFunc InputStartedFunc,
+                                CallbackFunc InputCompletedFunc = nullptr,
+                                CallbackFunc InputTriggeredFunc = nullptr);
 
     template <class UserObject, typename CallbackFunc>
     void BindNativeInputAction(UEnhancedInputComponent* InputComponent,
@@ -191,9 +191,9 @@ public:
 template <class UserObject, typename CallbackFunc>
 void UAeonInputConfig::BindAbilityInputAction(UEnhancedInputComponent* InputComponent,
                                               UserObject* ContextObject,
-                                              CallbackFunc InputPressedFunc,
-                                              CallbackFunc InputReleasedFunc,
-                                              CallbackFunc InputHeldFunc)
+                                              CallbackFunc InputStartedFunc,
+                                              CallbackFunc InputCompletedFunc,
+                                              CallbackFunc InputTriggeredFunc)
 {
     checkf(InputComponent, TEXT("InputComponent is null"));
     int32 Index = 0;
@@ -201,28 +201,28 @@ void UAeonInputConfig::BindAbilityInputAction(UEnhancedInputComponent* InputComp
     {
         if (Action.IsValid())
         {
-            if (InputPressedFunc)
+            if (InputStartedFunc)
             {
                 InputComponent->BindAction(Action.InputAction,
                                            ETriggerEvent::Started,
                                            ContextObject,
-                                           InputPressedFunc,
+                                           InputStartedFunc,
                                            Action.InputTag);
             }
-            if (InputReleasedFunc)
+            if (InputCompletedFunc)
             {
                 InputComponent->BindAction(Action.InputAction,
                                            ETriggerEvent::Completed,
                                            ContextObject,
-                                           InputReleasedFunc,
+                                           InputCompletedFunc,
                                            Action.InputTag);
             }
-            if (InputHeldFunc)
+            if (InputTriggeredFunc)
             {
                 InputComponent->BindAction(Action.InputAction,
                                            ETriggerEvent::Triggered,
                                            ContextObject,
-                                           InputHeldFunc,
+                                           InputTriggeredFunc,
                                            Action.InputTag);
             }
         }
