@@ -20,13 +20,13 @@
 
 #define UE_API AEON_API
 
-class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitGameplayEvent;
 class UAnimMontage;
-class UGameplayTask;
-class AActor;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAeonGameplayEventSignature, FGameplayEventData, Payload);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAeonGameplayEventSignature,
+                                             FGameplayTag,
+                                             EventTag,
+                                             const FGameplayEventData&,
+                                             Payload);
 
 UCLASS()
 class UE_API UAeonAbilityTask_PlayMontageAndWaitForEvent : public UAbilityTask
@@ -53,92 +53,91 @@ public:
                                FName StartSection = NAME_None,
                                bool bStopWhenAbilityEnds = true,
                                float AnimRootMotionTranslationScale = 1.f,
-                               float MontageStartTimeSeconds = 0.f,
-                               bool bAllowInterruptAfterBlendOut = false,
-                               AActor* OptionalExternalTarget = nullptr,
                                bool bOnlyTriggerOnce = false,
                                bool bOnlyMatchExact = true);
 
+    /** Broadcast when the montage completes without interruption. */
     UPROPERTY(BlueprintAssignable)
     FAeonGameplayEventSignature OnCompleted;
 
+    /** Broadcast when the montage begins blending out without interruption. */
     UPROPERTY(BlueprintAssignable)
     FAeonGameplayEventSignature OnBlendOut;
 
+    /** Broadcast when the montage or owning ability is interrupted after playback has started. */
     UPROPERTY(BlueprintAssignable)
     FAeonGameplayEventSignature OnInterrupted;
 
+    /** Broadcast when the task is explicitly cancelled or cannot begin playback. */
     UPROPERTY(BlueprintAssignable)
     FAeonGameplayEventSignature OnCancelled;
 
+    /** Broadcast when a matching gameplay event is received while the task is active. */
     UPROPERTY(BlueprintAssignable)
-    FAeonGameplayEventSignature EventReceived;
+    FAeonGameplayEventSignature OnEventReceived;
 
     virtual void ExternalCancel() override;
     virtual void OnDestroy(bool bInOwnerFinished) override;
     virtual FString GetDebugString() const override;
 
 protected:
-    void InitializeTask(FName InTaskInstanceName,
-                        UAnimMontage* InMontageToPlay,
-                        FGameplayTag InEventTag,
+    void InitializeTask(UAnimMontage* InMontageToPlay,
                         float InRate,
                         FName InStartSection,
                         bool bInStopWhenAbilityEnds,
                         float InAnimRootMotionTranslationScale,
-                        float InMontageStartTimeSeconds,
-                        bool bInAllowInterruptAfterBlendOut,
-                        AActor* InOptionalExternalTarget,
+                        FGameplayTag InEventTag,
                         bool bInOnlyTriggerOnce,
                         bool bInOnlyMatchExact);
 
-    virtual UAbilityTask_PlayMontageAndWait* CreateMontageTask();
-    virtual UAbilityTask_WaitGameplayEvent* CreateGameplayEventTask();
-    virtual void ReadySubTaskForActivation(UGameplayTask* Task);
-
     virtual void Activate() override;
 
-    UFUNCTION()
-    void HandleMontageCompleted();
-
-    UFUNCTION()
-    void HandleMontageBlendOut();
-
-    UFUNCTION()
-    void HandleMontageInterrupted();
-
-    UFUNCTION()
-    void HandleMontageCancelled();
-
-    UFUNCTION()
-    void HandleGameplayEvent(FGameplayEventData Payload);
-
 private:
-    void CleanupSubTasks();
-    void BroadcastCancelledAndEndTask();
-
+    /** The Montage to play. */
     UPROPERTY()
     TObjectPtr<UAnimMontage> MontageToPlay{ nullptr };
 
+    /** The Event Tag to listen for. */
     UPROPERTY()
-    TObjectPtr<AActor> OptionalExternalTarget{ nullptr };
-
-    UPROPERTY()
-    TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask{ nullptr };
-
-    UPROPERTY()
-    TObjectPtr<UAbilityTask_WaitGameplayEvent> GameplayEventTask{ nullptr };
-
-    FName TaskInstanceName{ NAME_None };
     FGameplayTag EventTag{ FGameplayTag::EmptyTag };
+
+    /** Playback rate */
+    UPROPERTY()
     float Rate{ 1.f };
+
+    /** Section to start montage from */
+    UPROPERTY()
     FName StartSection{ NAME_None };
+
+    /** True if the montage should be aborted if ability ends */
+    UPROPERTY()
     bool bStopWhenAbilityEnds{ true };
+
+    /** Modifies how root motion movement to apply */
+    UPROPERTY()
     float AnimRootMotionTranslationScale{ 1.f };
-    float MontageStartTimeSeconds{ 0.f };
-    bool bAllowInterruptAfterBlendOut{ false };
+
+    FOnMontageBlendingOutStarted BlendingOutDelegate;
+    FOnMontageEnded MontageEndedDelegate;
+    FDelegateHandle OnGameplayAbilityCancelledHandle;
+
     bool bOnlyTriggerOnce{ false };
     bool bOnlyMatchExact{ true };
+
+    void ResetAnimRootMotionTranslationScale() const;
+
+    /** If the ability is playing a montage, stop it and return true else return false. */
+    bool StopPlayingMontage();
+
+    void OnGameplayEvent(const FGameplayEventData* Payload);
+    void OnGameplayEvent(FGameplayTag InEventTag, const FGameplayEventData* Payload);
+
+    void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+    void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+    void OnGameplayAbilityCancelled();
+
+    FDelegateHandle OnGameplayEventHandle;
 };
 
 #undef UE_API

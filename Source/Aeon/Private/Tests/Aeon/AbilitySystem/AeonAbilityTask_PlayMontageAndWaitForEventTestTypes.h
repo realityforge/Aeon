@@ -13,121 +13,117 @@
  */
 #pragma once
 
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/GameplayAbility.h"
+#include "Abilities/GameplayAbilityTypes.h"
+#include "AbilitySystemInterface.h"
+#include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
 #include "Aeon/AbilitySystem/AeonAbilityTask_PlayMontageAndWaitForEvent.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "CoreMinimal.h"
+#include "Engine/SkeletalMesh.h"
+#include "GameFramework/Character.h"
+#include "UObject/ConstructorHelpers.h"
 #include "AeonAbilityTask_PlayMontageAndWaitForEventTestTypes.generated.h"
 
 UCLASS(NotBlueprintable)
-class UAeonTestPlayMontageAndWaitForEventListener final : public UObject
+class UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener final : public UObject
 {
     GENERATED_BODY()
 
 public:
     UFUNCTION()
-    void HandleCompleted(const FGameplayEventData Payload)
-    {
-        ++CompletedCount;
-        CompletedPayloadTags.Add(Payload.EventTag);
-    }
-
-    UFUNCTION()
-    void HandleBlendOut(const FGameplayEventData Payload)
-    {
-        ++BlendOutCount;
-        BlendOutPayloadTags.Add(Payload.EventTag);
-    }
-
-    UFUNCTION()
-    void HandleInterrupted(const FGameplayEventData Payload)
-    {
-        ++InterruptedCount;
-        InterruptedPayloadTags.Add(Payload.EventTag);
-    }
-
-    UFUNCTION()
-    void HandleCancelled(const FGameplayEventData Payload)
+    void HandleCancelled(const FGameplayTag InEventTag, const FGameplayEventData& InPayload)
     {
         ++CancelledCount;
-        CancelledPayloadTags.Add(Payload.EventTag);
+        LastCancelledEventTag = InEventTag;
+        LastCancelledPayloadEventTag = InPayload.EventTag;
     }
 
-    // ReSharper disable once CppPassValueParameterByConstReference
     UFUNCTION()
-    void HandleEventReceived(const FGameplayEventData GameplayEventData)
+    void HandleInterrupted(const FGameplayTag InEventTag, const FGameplayEventData& InPayload)
     {
-        ++EventCount;
-        ReceivedEventTags.Add(GameplayEventData.EventTag);
+        ++InterruptedCount;
+        LastInterruptedEventTag = InEventTag;
+        LastInterruptedPayloadEventTag = InPayload.EventTag;
     }
 
-    int32 CompletedCount{ 0 };
-    int32 BlendOutCount{ 0 };
-    int32 InterruptedCount{ 0 };
+    UFUNCTION()
+    void HandleEventReceived(const FGameplayTag InEventTag, const FGameplayEventData& InPayload)
+    {
+        ++EventReceivedCount;
+        LastEventReceivedTag = InEventTag;
+        LastEventReceivedPayloadEventTag = InPayload.EventTag;
+    }
+
     int32 CancelledCount{ 0 };
-    int32 EventCount{ 0 };
-    TArray<FGameplayTag> CompletedPayloadTags;
-    TArray<FGameplayTag> BlendOutPayloadTags;
-    TArray<FGameplayTag> InterruptedPayloadTags;
-    TArray<FGameplayTag> CancelledPayloadTags;
-    TArray<FGameplayTag> ReceivedEventTags;
+    int32 InterruptedCount{ 0 };
+    int32 EventReceivedCount{ 0 };
+    FGameplayTag LastCancelledEventTag{ FGameplayTag::EmptyTag };
+    FGameplayTag LastCancelledPayloadEventTag{ FGameplayTag::EmptyTag };
+    FGameplayTag LastInterruptedEventTag{ FGameplayTag::EmptyTag };
+    FGameplayTag LastInterruptedPayloadEventTag{ FGameplayTag::EmptyTag };
+    FGameplayTag LastEventReceivedTag{ FGameplayTag::EmptyTag };
+    FGameplayTag LastEventReceivedPayloadEventTag{ FGameplayTag::EmptyTag };
 };
 
-UCLASS()
-class UAeonTestMontageTask final : public UAbilityTask_PlayMontageAndWait
+UCLASS(NotBlueprintable)
+class UAeonAbilityTaskPlayMontageAndWaitForEventTestAbilitySystemComponent final : public UAeonAbilitySystemComponent
 {
     GENERATED_BODY()
 
 public:
-    virtual void Activate() override { bActivatedForTest = true; }
-
-    virtual void ExternalCancel() override
+    void SeedAnimatingMontageForTest(UGameplayAbility* const InAbility, UAnimMontage* const InMontage)
     {
-        ++ExternalCancelCountForTest;
-        OnCancelled.Broadcast();
-    }
-
-    bool bActivatedForTest{ false };
-    bool bDestroyedForTest{ false };
-    int32 ExternalCancelCountForTest{ 0 };
-
-    void BroadcastCompletedForTest() const { OnCompleted.Broadcast(); }
-    void BroadcastBlendOutForTest() const { OnBlendOut.Broadcast(); }
-    void BroadcastInterruptedForTest() const { OnInterrupted.Broadcast(); }
-
-protected:
-    virtual void OnDestroy(const bool bInOwnerFinished) override
-    {
-        bDestroyedForTest = true;
-        Super::OnDestroy(bInOwnerFinished);
+        LocalAnimMontageInfo.AnimatingAbility = InAbility;
+        LocalAnimMontageInfo.AnimMontage = InMontage;
+        if (InAbility)
+        {
+            InAbility->SetCurrentMontage(InMontage);
+        }
     }
 };
 
-UCLASS()
-class UAeonTestGameplayEventTask final : public UAbilityTask_WaitGameplayEvent
+UCLASS(NotBlueprintable)
+class AAeonAbilityTaskPlayMontageAndWaitForEventCharacter final : public ACharacter, public IAbilitySystemInterface
 {
     GENERATED_BODY()
 
 public:
-    virtual void Activate() override { bActivatedForTest = true; }
-
-    virtual void OnDestroy(const bool bInOwnerFinished) override
+    explicit AAeonAbilityTaskPlayMontageAndWaitForEventCharacter(
+        const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get())
+        : Super(ObjectInitializer)
     {
-        bDestroyedForTest = true;
-        Super::OnDestroy(bInOwnerFinished);
+        AbilitySystemComponent =
+            CreateDefaultSubobject<UAeonAbilityTaskPlayMontageAndWaitForEventTestAbilitySystemComponent>(
+                TEXT("AbilitySystemComponent"));
+
+        static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset(
+            TEXT("/Engine/Tutorial/SubEditors/TutorialAssets/Character/TutorialTPP.TutorialTPP"));
+        if (SkeletalMeshAsset.Succeeded())
+        {
+            GetMesh()->SetSkeletalMeshAsset(SkeletalMeshAsset.Object);
+        }
+
+        static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(
+            TEXT("/Engine/Tutorial/SubEditors/TutorialAssets/Character/TutorialTPP_AnimBlueprint"));
+        if (AnimBlueprintClass.Succeeded())
+        {
+            GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+            GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
+        }
     }
 
-    void BroadcastEventReceivedForTest(const FGameplayTag EventTag) const
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+
+    UAeonAbilityTaskPlayMontageAndWaitForEventTestAbilitySystemComponent* GetAeonAbilitySystemComponent() const
     {
-        FGameplayEventData Payload;
-        Payload.EventTag = EventTag;
-        EventReceived.Broadcast(Payload);
+        return AbilitySystemComponent;
     }
 
-    bool bActivatedForTest{ false };
-    bool bDestroyedForTest{ false };
-    FGameplayTag ConfiguredEventTagForTest{ FGameplayTag::EmptyTag };
-    bool bOnlyTriggerOnceForTest{ false };
-    bool bOnlyMatchExactForTest{ false };
+private:
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<UAeonAbilityTaskPlayMontageAndWaitForEventTestAbilitySystemComponent> AbilitySystemComponent;
 };
 
 UCLASS(NotBlueprintable)
@@ -136,96 +132,21 @@ class UAeonTestPlayMontageAndWaitForEventTask final : public UAeonAbilityTask_Pl
     GENERATED_BODY()
 
 public:
-    static UAeonTestPlayMontageAndWaitForEventTask* CreateForTest(UGameplayAbility* OwningAbility,
-                                                                  UAnimMontage* MontageToPlay,
-                                                                  const FGameplayTag EventTag,
-                                                                  const bool bOnlyTriggerOnce = false,
-                                                                  const bool bOnlyMatchExact = true)
+    static UAeonTestPlayMontageAndWaitForEventTask* CreateForTest(UGameplayAbility* const OwningAbility,
+                                                                  UAnimMontage* const MontageToPlay,
+                                                                  const float InAnimRootMotionTranslationScale = 1.f)
     {
-        const auto Task = NewAbilityTask<UAeonTestPlayMontageAndWaitForEventTask>(OwningAbility);
-        Task->ExpectedEventTagForTest = EventTag;
-        Task->bExpectedOnlyTriggerOnceForTest = bOnlyTriggerOnce;
-        Task->bExpectedOnlyMatchExactForTest = bOnlyMatchExact;
-        Task->InitializeTask(NAME_None,
-                             MontageToPlay,
-                             EventTag,
+        const auto Task = NewAbilityTask<ThisClass>(OwningAbility, NAME_None);
+        Task->InitializeTask(MontageToPlay,
                              1.f,
                              NAME_None,
                              true,
-                             1.f,
-                             0.f,
+                             InAnimRootMotionTranslationScale,
+                             FGameplayTag::EmptyTag,
                              false,
-                             nullptr,
-                             bOnlyTriggerOnce,
-                             bOnlyMatchExact);
+                             true);
         return Task;
     }
 
-    void SetForceMontageTaskNullForTest(const bool bValue) { bForceMontageTaskNullForTest = bValue; }
-    void SetForceGameplayEventTaskNullForTest(const bool bValue) { bForceGameplayEventTaskNullForTest = bValue; }
-    void ActivateForTest() { Activate(); }
-    void ExternalCancelForTest() { ExternalCancel(); }
-
-    const TArray<FString>& GetActivationOrderForTest() const { return ActivationOrderForTest; }
-    UAeonTestMontageTask* GetMontageTaskForTest() const { return MontageTaskForTest; }
-    UAeonTestGameplayEventTask* GetGameplayEventTaskForTest() const { return GameplayEventTaskForTest; }
-
-protected:
-    virtual UAbilityTask_PlayMontageAndWait* CreateMontageTask() override
-    {
-        if (bForceMontageTaskNullForTest)
-        {
-            MontageTaskForTest = nullptr;
-            return nullptr;
-        }
-
-        MontageTaskForTest = NewAbilityTask<UAeonTestMontageTask>(Ability);
-        return MontageTaskForTest;
-    }
-
-    virtual UAbilityTask_WaitGameplayEvent* CreateGameplayEventTask() override
-    {
-        if (bForceGameplayEventTaskNullForTest)
-        {
-            GameplayEventTaskForTest = nullptr;
-            return nullptr;
-        }
-
-        GameplayEventTaskForTest = NewAbilityTask<UAeonTestGameplayEventTask>(Ability);
-        GameplayEventTaskForTest->ConfiguredEventTagForTest = ExpectedEventTagForTest;
-        GameplayEventTaskForTest->bOnlyTriggerOnceForTest = bExpectedOnlyTriggerOnceForTest;
-        GameplayEventTaskForTest->bOnlyMatchExactForTest = bExpectedOnlyMatchExactForTest;
-        return GameplayEventTaskForTest;
-    }
-
-    virtual void ReadySubTaskForActivation(UGameplayTask* const Task) override
-    {
-        if (Task == GameplayEventTaskForTest)
-        {
-            ActivationOrderForTest.Add(TEXT("GameplayEvent"));
-        }
-        else if (Task == MontageTaskForTest)
-        {
-            ActivationOrderForTest.Add(TEXT("Montage"));
-        }
-
-        if (Task)
-        {
-            Task->ReadyForActivation();
-        }
-    }
-
-private:
-    bool bForceMontageTaskNullForTest{ false };
-    bool bForceGameplayEventTaskNullForTest{ false };
-    FGameplayTag ExpectedEventTagForTest{ FGameplayTag::EmptyTag };
-    bool bExpectedOnlyTriggerOnceForTest{ false };
-    bool bExpectedOnlyMatchExactForTest{ true };
-    TArray<FString> ActivationOrderForTest;
-
-    UPROPERTY()
-    TObjectPtr<UAeonTestMontageTask> MontageTaskForTest{ nullptr };
-
-    UPROPERTY()
-    TObjectPtr<UAeonTestGameplayEventTask> GameplayEventTaskForTest{ nullptr };
+    bool StopPlayingMontageForTest() { return StopPlayingMontage(); }
 };

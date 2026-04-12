@@ -13,7 +13,10 @@
  */
 #if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
+    #include "Abilities/GameplayAbility.h"
+    #include "Aeon/AbilitySystem/AeonAbilityTask_PlayMontageAndWaitForEvent.h"
     #include "Animation/AnimMontage.h"
+    #include "Animation/AnimSequenceBase.h"
     #include "GameplayAbilitySpec.h"
     #include "Misc/AutomationTest.h"
     #include "NativeGameplayTags.h"
@@ -23,344 +26,360 @@
 
 namespace AeonAbilityTaskPlayMontageAndWaitForEventTests
 {
-    UE_DEFINE_GAMEPLAY_TAG_STATIC(TestEventTag, "Aeon.Test.AbilityTask.PlayMontageAndWaitForEvent");
+    UE_DEFINE_GAMEPLAY_TAG_STATIC(TestEventTag, "Aeon.Test.AbilityTask.PlayMontageAndWaitForEvent.Event");
+    UE_DEFINE_GAMEPLAY_TAG_STATIC(TestChildEventTag, "Aeon.Test.AbilityTask.PlayMontageAndWaitForEvent.Event.Child");
 
-    struct FAbilityTaskTestContext
+    AAeonAutomationTestActor* CreateAbilitySystemActor(FAutomationTestBase& Test,
+                                                       TUniquePtr<AeonTests::FTestWorld>& OutWorld)
     {
-        TUniquePtr<AeonTests::FTestWorld> World;
-        TObjectPtr<AAeonAutomationTestActor> Actor{ nullptr };
-        TObjectPtr<UAeonAutomationTestGameplayAbility> Ability{ nullptr };
-        TObjectPtr<UAnimMontage> Montage{ nullptr };
-    };
-
-    UAeonTestPlayMontageAndWaitForEventTask* CreateTaskForTest(FAutomationTestBase& Test,
-                                                               FAbilityTaskTestContext& OutContext,
-                                                               const bool bOnlyTriggerOnce = false,
-                                                               const bool bOnlyMatchExact = true)
-    {
-        const auto Actor = AeonTests::SpawnActorInFreshTestWorld<AAeonAutomationTestActor>(
-            Test,
-            OutContext.World,
-            TEXT("Ability-system test actor"),
-            TEXT("AeonPlayMontageAndWaitForEventTestWorld"));
-        if (Test.TestNotNull(TEXT("Ability-system test actor should spawn"), Actor))
+        if (const auto Actor = AeonTests::SpawnActorInFreshTestWorld<AAeonAutomationTestActor>(
+                Test,
+                OutWorld,
+                TEXT("Ability-task test actor"),
+                TEXT("AeonAbilityTaskPlayMontageAndWaitForEventTestWorld")))
         {
-            const auto AbilitySystemComponent = AeonTests::GetInitializedAbilitySystemComponent(Test, Actor);
-            if (Test.TestNotNull(TEXT("Ability-system test actor should expose an Aeon ASC"), AbilitySystemComponent))
+            return AeonTests::GetInitializedAbilitySystemComponent(Test, Actor) ? Actor : nullptr;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    AAeonAbilityTaskPlayMontageAndWaitForEventCharacter*
+    CreateAbilitySystemCharacter(FAutomationTestBase& Test, TUniquePtr<AeonTests::FTestWorld>& OutWorld)
+    {
+        if (const auto Character =
+                AeonTests::SpawnActorInFreshTestWorld<AAeonAbilityTaskPlayMontageAndWaitForEventCharacter>(
+                    Test,
+                    OutWorld,
+                    TEXT("Ability-task test character"),
+                    TEXT("AeonAbilityTaskPlayMontageAndWaitForEventCharacterWorld")))
+        {
+            const auto AbilitySystemComponent = Character->GetAeonAbilitySystemComponent();
+            if (Test.TestNotNull(TEXT("Ability-task test character should expose an Aeon ASC"), AbilitySystemComponent))
             {
-                const FGameplayAbilitySpec AbilitySpec(UAeonAutomationTestGameplayAbility::StaticClass());
-                const auto AbilityHandle = AbilitySystemComponent->GiveAbility(AbilitySpec);
-                const auto GrantedAbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(AbilityHandle);
-                const auto Ability = GrantedAbilitySpec
-                    ? Cast<UAeonAutomationTestGameplayAbility>(GrantedAbilitySpec->GetPrimaryInstance())
-                    : nullptr;
-                const auto Montage = AeonTests::NewTransientObject<UAnimMontage>(Actor);
-                if (Test.TestNotNull(TEXT("Granted ability spec should be created"), GrantedAbilitySpec)
-                    && Test.TestNotNull(TEXT("Granted ability instance should be created"), Ability)
-                    && Test.TestNotNull(TEXT("Montage should be created"), Montage))
-                {
-                    Ability->SetIsActiveForTest(true);
-                    OutContext.Actor = Actor;
-                    OutContext.Ability = Ability;
-                    OutContext.Montage = Montage;
-                    return UAeonTestPlayMontageAndWaitForEventTask::CreateForTest(Ability,
-                                                                                  Montage,
-                                                                                  TestEventTag.GetTag(),
-                                                                                  bOnlyTriggerOnce,
-                                                                                  bOnlyMatchExact);
-                }
+                AbilitySystemComponent->InitAbilityActorInfo(Character, Character);
+                return Character;
             }
         }
 
         return nullptr;
     }
 
-    UAeonTestPlayMontageAndWaitForEventListener*
-    BindListener(FAutomationTestBase& Test, UObject* Outer, UAeonTestPlayMontageAndWaitForEventTask* Task)
+    UAnimSequenceBase* LoadIdleAnimationForTest()
     {
-        const auto Listener = AeonTests::NewTransientObject<UAeonTestPlayMontageAndWaitForEventListener>(Outer);
-        if (Test.TestNotNull(TEXT("Listener should be created"), Listener))
+        return LoadObject<UAnimSequenceBase>(
+            nullptr,
+            TEXT("/Engine/Tutorial/SubEditors/TutorialAssets/Character/Tutorial_Idle.Tutorial_Idle"));
+    }
+
+    UAnimMontage* CreateDynamicMontageForTest(FAutomationTestBase& Test, UAnimSequenceBase* const Animation)
+    {
+        const auto Montage = Animation ? UAnimMontage::CreateSlotAnimationAsDynamicMontage(Animation,
+                                                                                           FName(TEXT("DefaultSlot")),
+                                                                                           0.1f,
+                                                                                           0.1f,
+                                                                                           1.f,
+                                                                                           1,
+                                                                                           -1.f,
+                                                                                           0.f)
+                                       : nullptr;
+        return Test.TestNotNull(TEXT("Dynamic montage should be created from the test animation"), Montage) ? Montage
+                                                                                                            : nullptr;
+    }
+
+    UGameplayAbility* ActivateAbility(FAutomationTestBase& Test, UAbilitySystemComponent* AbilitySystemComponent)
+    {
+        UAeonAutomationTestGameplayAbility::ResetCounters();
+
+        const FGameplayAbilitySpec Spec(UAeonAutomationTestGameplayAbility::StaticClass());
+        const auto Handle = AbilitySystemComponent->GiveAbility(Spec);
+        const auto AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
+        if (Test.TestNotNull(TEXT("Granted test ability should exist"), AbilitySpec)
+            && Test.TestTrue(TEXT("Granted test ability should activate"),
+                             AbilitySystemComponent->TryActivateAbility(Handle))
+            && Test.TestTrue(TEXT("Granted test ability should become active"), AbilitySpec->IsActive()))
         {
-            Task->OnCompleted.AddDynamic(Listener, &UAeonTestPlayMontageAndWaitForEventListener::HandleCompleted);
-            Task->OnBlendOut.AddDynamic(Listener, &UAeonTestPlayMontageAndWaitForEventListener::HandleBlendOut);
-            Task->OnInterrupted.AddDynamic(Listener, &UAeonTestPlayMontageAndWaitForEventListener::HandleInterrupted);
-            Task->OnCancelled.AddDynamic(Listener, &UAeonTestPlayMontageAndWaitForEventListener::HandleCancelled);
-            Task->EventReceived.AddDynamic(Listener, &UAeonTestPlayMontageAndWaitForEventListener::HandleEventReceived);
+            return Test.TestNotNull(TEXT("Granted test ability should create a primary instance"),
+                                    AbilitySpec->GetPrimaryInstance())
+                ? AbilitySpec->GetPrimaryInstance()
+                : nullptr;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    struct FActivatedTaskFixture
+    {
+        AAeonAbilityTaskPlayMontageAndWaitForEventCharacter* Character{ nullptr };
+        UGameplayAbility* Ability{ nullptr };
+        UAnimSequenceBase* Animation{ nullptr };
+        UAnimMontage* Montage{ nullptr };
+        UAeonAbilityTask_PlayMontageAndWaitForEvent* Task{ nullptr };
+    };
+
+    FActivatedTaskFixture ActivateGameplayEventTask(FAutomationTestBase& Test,
+                                                    TUniquePtr<AeonTests::FTestWorld>& OutWorld,
+                                                    const FGameplayTag EventTag,
+                                                    const bool bOnlyTriggerOnce = false,
+                                                    const bool bOnlyMatchExact = true)
+    {
+        FActivatedTaskFixture Fixture;
+        Fixture.Character = CreateAbilitySystemCharacter(Test, OutWorld);
+        if (!Fixture.Character)
+        {
+            return Fixture;
         }
 
-        return Listener;
+        Fixture.Ability = ActivateAbility(Test, Fixture.Character->GetAeonAbilitySystemComponent());
+        Fixture.Animation = LoadIdleAnimationForTest();
+        if (!Test.TestNotNull(TEXT("Activated ability instance should be available"), Fixture.Ability)
+            || !Test.TestNotNull(TEXT("Test idle animation should be available"), Fixture.Animation))
+        {
+            return Fixture;
+        }
+
+        Fixture.Montage = CreateDynamicMontageForTest(Test, Fixture.Animation);
+        if (!Fixture.Montage)
+        {
+            return Fixture;
+        }
+
+        Fixture.Task = UAeonAbilityTask_PlayMontageAndWaitForEvent::PlayMontageAndWaitForEvent(Fixture.Ability,
+                                                                                               NAME_None,
+                                                                                               Fixture.Montage,
+                                                                                               EventTag,
+                                                                                               1.f,
+                                                                                               NAME_None,
+                                                                                               true,
+                                                                                               1.f,
+                                                                                               bOnlyTriggerOnce,
+                                                                                               bOnlyMatchExact);
+        if (Test.TestNotNull(TEXT("Montage-and-event task should be created"), Fixture.Task))
+        {
+            Fixture.Task->ReadyForActivation();
+            Test.TestEqual(TEXT("Task activation should start the requested montage"),
+                           Fixture.Character->GetAeonAbilitySystemComponent()->GetCurrentMontage(),
+                           Fixture.Montage);
+        }
+
+        return Fixture;
     }
 } // namespace AeonAbilityTaskPlayMontageAndWaitForEventTests
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventActivationOrderTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.ActivationOrder",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventExternalCancelBroadcastsCancelledTest,
+                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.ExternalCancel.BroadcastsCancelled",
                                  AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventActivationOrderTest::RunTest(const FString&)
+bool FAeonAbilityTaskPlayMontageAndWaitForEventExternalCancelBroadcastsCancelledTest::RunTest(const FString&)
 {
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateAbilitySystemActor(*this, World))
     {
-        Task->ActivateForTest();
-
-        const auto MontageTask = Task->GetMontageTaskForTest();
-        const auto GameplayEventTask = Task->GetGameplayEventTaskForTest();
-        const auto& ActivationOrder = Task->GetActivationOrderForTest();
-
-        const bool bResult = TestNotNull(TEXT("Montage sub-task should be created"), MontageTask)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created"), GameplayEventTask)
-            && TestEqual(TEXT("Combined task should activate two sub-tasks"), ActivationOrder.Num(), 2)
-            && TestEqual(TEXT("Gameplay-event task should activate before the montage task"),
-                         ActivationOrder[0],
-                         FString(TEXT("GameplayEvent")))
-            && TestEqual(TEXT("Montage task should activate second"), ActivationOrder[1], FString(TEXT("Montage")))
-            && TestTrue(TEXT("Montage sub-task should activate"), MontageTask->bActivatedForTest)
-            && TestTrue(TEXT("Gameplay-event sub-task should activate"), GameplayEventTask->bActivatedForTest)
-            && TestEqual(TEXT("Gameplay-event sub-task should preserve the event tag"),
-                         GameplayEventTask->ConfiguredEventTagForTest,
-                         AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag())
-            && TestFalse(TEXT("Gameplay-event sub-task should keep listening for repeated events"),
-                         GameplayEventTask->bOnlyTriggerOnceForTest)
-            && TestTrue(TEXT("Gameplay-event sub-task should require exact tag matches"),
-                        GameplayEventTask->bOnlyMatchExactForTest);
-        Task->EndTask();
-        return bResult;
-    }
-
-    return false;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventForwardsGameplayEventsTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.ForwardsGameplayEvents",
-                                 AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventForwardsGameplayEventsTest::RunTest(const FString&)
-{
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
-    {
+        const auto Ability =
+            AeonAbilityTaskPlayMontageAndWaitForEventTests::ActivateAbility(*this,
+                                                                            Actor->GetAeonAbilitySystemComponent());
         const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->ActivateForTest();
-        if (TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created"), Task->GetGameplayEventTaskForTest()))
+            AeonTests::NewTransientObject<UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener>(Actor);
+        if (TestNotNull(TEXT("Delegate listener should be created"), Listener)
+            && TestNotNull(TEXT("Activated ability instance should be available"), Ability))
         {
-            Task->GetGameplayEventTaskForTest()->BroadcastEventReceivedForTest(
-                AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag());
+            const auto Task =
+                UAeonAbilityTask_PlayMontageAndWaitForEvent::PlayMontageAndWaitForEvent(Ability,
+                                                                                        NAME_None,
+                                                                                        nullptr,
+                                                                                        FGameplayTag::EmptyTag);
+            if (TestNotNull(TEXT("Montage-and-event ability task should be created"), Task))
+            {
+                Task->OnCancelled.AddDynamic(
+                    Listener,
+                    &UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener::HandleCancelled);
+                Task->OnInterrupted.AddDynamic(
+                    Listener,
+                    &UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener::HandleInterrupted);
 
-            const bool bResult =
-                TestEqual(TEXT("Gameplay-event payload should be forwarded once"), Listener->EventCount, 1)
-                && TestEqual(TEXT("Forwarded payload should retain the event tag"),
-                             Listener->ReceivedEventTags[0],
-                             AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag());
-            Task->EndTask();
-            return bResult;
+                Task->ExternalCancel();
+
+                return TestEqual(TEXT("External cancel should broadcast the cancelled delegate once"),
+                                 Listener->CancelledCount,
+                                 1)
+                    && TestEqual(TEXT("External cancel should not broadcast the interrupted delegate"),
+                                 Listener->InterruptedCount,
+                                 0)
+                    && TestTrue(TEXT("Cancelled delegate should use an empty event tag"),
+                                !Listener->LastCancelledEventTag.IsValid())
+                    && TestTrue(TEXT("Cancelled delegate should use an empty payload event tag"),
+                                !Listener->LastCancelledPayloadEventTag.IsValid());
+            }
         }
     }
 
     return false;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventRepeatedEventTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.RepeatedEvents",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventStopPlayingMontageResetsRootMotionScaleTest,
+                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.StopPlayingMontage.ResetsRootMotionScale",
                                  AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventRepeatedEventTest::RunTest(const FString&)
+bool FAeonAbilityTaskPlayMontageAndWaitForEventStopPlayingMontageResetsRootMotionScaleTest::RunTest(const FString&)
 {
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Character =
+            AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateAbilitySystemCharacter(*this, World))
     {
-        const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->ActivateForTest();
-        if (TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created"), Task->GetGameplayEventTaskForTest()))
+        const auto Ability =
+            AeonAbilityTaskPlayMontageAndWaitForEventTests::ActivateAbility(*this,
+                                                                            Character->GetAeonAbilitySystemComponent());
+        const auto Animation = AeonAbilityTaskPlayMontageAndWaitForEventTests::LoadIdleAnimationForTest();
+        const auto AnimInstance = Character->GetMesh()->GetAnimInstance();
+        if (TestNotNull(TEXT("Activated ability instance should be available"), Ability)
+            && TestNotNull(TEXT("Character should expose an anim instance"), AnimInstance)
+            && TestNotNull(TEXT("Test idle animation should be available"), Animation))
         {
-            Task->GetGameplayEventTaskForTest()->BroadcastEventReceivedForTest(
-                AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag());
-            Task->GetGameplayEventTaskForTest()->BroadcastEventReceivedForTest(
-                AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag());
+            const auto DynamicMontage = Character->GetAeonAbilitySystemComponent()->PlaySlotAnimationAsDynamicMontage(
+                Ability,
+                Ability->GetCurrentActivationInfo(),
+                Animation,
+                FName(TEXT("DefaultSlot")),
+                0.1f,
+                0.1f,
+                1.f,
+                0.f);
 
-            const bool bResult =
-                TestEqual(TEXT("Combined task should forward repeated gameplay events"), Listener->EventCount, 2);
-            Task->EndTask();
-            return bResult;
+            if (TestNotNull(TEXT("ASC should create a dynamic montage for the test animation"), DynamicMontage)
+                && TestEqual(TEXT("ASC should report the dynamic montage as current"),
+                             Character->GetAeonAbilitySystemComponent()->GetCurrentMontage(),
+                             DynamicMontage))
+            {
+                const auto Task = UAeonTestPlayMontageAndWaitForEventTask::CreateForTest(Ability, DynamicMontage, 2.5f);
+                if (TestNotNull(TEXT("Montage-and-event test task should be created"), Task))
+                {
+                    Character->SetAnimRootMotionTranslationScale(2.5f);
+                    Character->GetAeonAbilitySystemComponent()->SeedAnimatingMontageForTest(Ability, DynamicMontage);
+
+                    return TestTrue(TEXT("StopPlayingMontage should succeed while the ability owns the active montage"),
+                                    Task->StopPlayingMontageForTest())
+                        && TestEqual(TEXT("Stopping the montage should reset root-motion translation scale"),
+                                     Character->GetAnimRootMotionTranslationScale(),
+                                     1.f);
+                }
+            }
         }
     }
 
     return false;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventBlendOutDoesNotEndTaskTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.BlendOutDoesNotEndTask",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventExactMatchIgnoresChildTagTest,
+                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.GameplayEvent.ExactMatchIgnoresChildTag",
                                  AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventBlendOutDoesNotEndTaskTest::RunTest(const FString&)
+bool FAeonAbilityTaskPlayMontageAndWaitForEventExactMatchIgnoresChildTagTest::RunTest(const FString&)
 {
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
+    TUniquePtr<AeonTests::FTestWorld> World;
+    auto Fixture = AeonAbilityTaskPlayMontageAndWaitForEventTests::ActivateGameplayEventTask(
+        *this,
+        World,
+        AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag(),
+        false,
+        true);
+    const auto Listener =
+        AeonTests::NewTransientObject<UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener>(Fixture.Character);
+    if (TestNotNull(TEXT("Gameplay-event listener should be created"), Listener)
+        && TestNotNull(TEXT("Gameplay-event task should be available"), Fixture.Task)
+        && TestNotNull(TEXT("Gameplay-event character should be available"), Fixture.Character))
     {
-        const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->ActivateForTest();
-        const auto MontageTask = Task->GetMontageTaskForTest();
-        const auto GameplayEventTask = Task->GetGameplayEventTaskForTest();
-        if (TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestNotNull(TEXT("Montage sub-task should be created"), MontageTask)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created"), GameplayEventTask))
-        {
-            MontageTask->BroadcastBlendOutForTest();
+        Fixture.Task->OnEventReceived.AddDynamic(
+            Listener,
+            &UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener::HandleEventReceived);
 
-            const bool bResult = TestEqual(TEXT("Blend-out should broadcast exactly once"), Listener->BlendOutCount, 1)
-                && TestEqual(TEXT("Blend-out should capture one payload"), Listener->BlendOutPayloadTags.Num(), 1)
-                && TestEqual(TEXT("Blend-out should forward an empty payload tag"),
-                             Listener->BlendOutPayloadTags[0],
-                             FGameplayTag::EmptyTag)
-                && TestFalse(TEXT("Blend-out should not destroy the montage sub-task"), MontageTask->bDestroyedForTest)
-                && TestFalse(TEXT("Blend-out should not destroy the gameplay-event sub-task"),
-                             GameplayEventTask->bDestroyedForTest);
-            Task->EndTask();
-            return bResult;
-        }
+        FGameplayEventData Payload;
+        Payload.EventTag = AeonAbilityTaskPlayMontageAndWaitForEventTests::TestChildEventTag.GetTag();
+        Fixture.Character->GetAeonAbilitySystemComponent()->HandleGameplayEvent(Payload.EventTag, &Payload);
+        Fixture.Task->EndTask();
+
+        return TestEqual(TEXT("Exact tag matching should ignore child gameplay events"),
+                         Listener->EventReceivedCount,
+                         0);
     }
 
     return false;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventCompletionCleansUpTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.CompletionCleansUp",
-                                 AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventCompletionCleansUpTest::RunTest(const FString&)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FAeonAbilityTaskPlayMontageAndWaitForEventInexactMatchAcceptsChildTagTest,
+    "Aeon.AbilityTask.PlayMontageAndWaitForEvent.GameplayEvent.InexactMatchAcceptsChildTag",
+    AeonTests::AutomationTestFlags)
+bool FAeonAbilityTaskPlayMontageAndWaitForEventInexactMatchAcceptsChildTagTest::RunTest(const FString&)
 {
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
+    TUniquePtr<AeonTests::FTestWorld> World;
+    auto Fixture = AeonAbilityTaskPlayMontageAndWaitForEventTests::ActivateGameplayEventTask(
+        *this,
+        World,
+        AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag(),
+        false,
+        false);
+    const auto Listener =
+        AeonTests::NewTransientObject<UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener>(Fixture.Character);
+    if (TestNotNull(TEXT("Gameplay-event listener should be created"), Listener)
+        && TestNotNull(TEXT("Gameplay-event task should be available"), Fixture.Task)
+        && TestNotNull(TEXT("Gameplay-event character should be available"), Fixture.Character))
     {
-        const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->ActivateForTest();
-        const auto MontageTask = Task->GetMontageTaskForTest();
-        const auto GameplayEventTask = Task->GetGameplayEventTaskForTest();
-        if (TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestNotNull(TEXT("Montage sub-task should be created"), MontageTask)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created"), GameplayEventTask))
-        {
-            MontageTask->BroadcastCompletedForTest();
+        Fixture.Task->OnEventReceived.AddDynamic(
+            Listener,
+            &UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener::HandleEventReceived);
 
-            const bool bResult = TestEqual(TEXT("Completion should broadcast once"), Listener->CompletedCount, 1)
-                && TestEqual(TEXT("Completion should capture one payload"), Listener->CompletedPayloadTags.Num(), 1)
-                && TestEqual(TEXT("Completion should forward an empty payload tag"),
-                             Listener->CompletedPayloadTags[0],
-                             FGameplayTag::EmptyTag)
-                && TestTrue(TEXT("Completion should destroy the montage sub-task"), MontageTask->bDestroyedForTest)
-                && TestTrue(TEXT("Completion should destroy the gameplay-event sub-task"),
-                            GameplayEventTask->bDestroyedForTest);
-            Task->EndTask();
-            return bResult;
-        }
-    }
+        FGameplayEventData Payload;
+        Payload.EventTag = AeonAbilityTaskPlayMontageAndWaitForEventTests::TestChildEventTag.GetTag();
+        Fixture.Character->GetAeonAbilitySystemComponent()->HandleGameplayEvent(Payload.EventTag, &Payload);
+        Fixture.Task->EndTask();
 
-    return false;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventExternalCancelTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.ExternalCancel",
-                                 AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventExternalCancelTest::RunTest(const FString&)
-{
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
-    {
-        const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->ActivateForTest();
-        const auto MontageTask = Task->GetMontageTaskForTest();
-        const auto GameplayEventTask = Task->GetGameplayEventTaskForTest();
-        if (TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestNotNull(TEXT("Montage sub-task should be created"), MontageTask)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created"), GameplayEventTask))
-        {
-            Task->ExternalCancelForTest();
-
-            const bool bResult = TestEqual(TEXT("External cancel should forward to the montage sub-task"),
-                                           MontageTask->ExternalCancelCountForTest,
-                                           1)
-                && TestEqual(TEXT("External cancel should broadcast cancellation once"), Listener->CancelledCount, 1)
-                && TestEqual(TEXT("External cancel should capture one payload"),
-                             Listener->CancelledPayloadTags.Num(),
-                             1)
-                && TestEqual(TEXT("External cancel should forward an empty payload tag"),
-                             Listener->CancelledPayloadTags[0],
-                             FGameplayTag::EmptyTag)
-                && TestTrue(TEXT("External cancel should destroy the montage sub-task"), MontageTask->bDestroyedForTest)
-                && TestTrue(TEXT("External cancel should destroy the gameplay-event sub-task"),
-                            GameplayEventTask->bDestroyedForTest);
-            Task->EndTask();
-            return bResult;
-        }
-    }
-
-    return false;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventMontageCreationFailureTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.MontageCreationFailureCancels",
-                                 AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventMontageCreationFailureTest::RunTest(const FString&)
-{
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
-    {
-        const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->SetForceMontageTaskNullForTest(true);
-        Task->ActivateForTest();
-
-        const bool bResult = TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestEqual(TEXT("Montage creation failure should broadcast cancellation"), Listener->CancelledCount, 1)
-            && TestEqual(TEXT("Montage creation failure should capture one payload"),
-                         Listener->CancelledPayloadTags.Num(),
+        return TestEqual(TEXT("Inexact tag matching should receive child gameplay events"),
+                         Listener->EventReceivedCount,
                          1)
-            && TestEqual(TEXT("Montage creation failure should forward an empty payload tag"),
-                         Listener->CancelledPayloadTags[0],
-                         FGameplayTag::EmptyTag)
-            && TestNotNull(TEXT("Gameplay-event sub-task should be created before montage creation fails"),
-                           Task->GetGameplayEventTaskForTest())
-            && TestTrue(TEXT("Creation failure should clean up the gameplay-event sub-task"),
-                        Task->GetGameplayEventTaskForTest()->bDestroyedForTest);
-        Task->EndTask();
-        return bResult;
+            && TestEqual(TEXT("Inexact tag matching should forward the actual child event tag"),
+                         Listener->LastEventReceivedTag,
+                         AeonAbilityTaskPlayMontageAndWaitForEventTests::TestChildEventTag.GetTag())
+            && TestEqual(TEXT("Inexact tag matching should preserve the payload event tag"),
+                         Listener->LastEventReceivedPayloadEventTag,
+                         AeonAbilityTaskPlayMontageAndWaitForEventTests::TestChildEventTag.GetTag());
     }
 
     return false;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilityTaskPlayMontageAndWaitForEventGameplayEventCreationFailureTest,
-                                 "Aeon.AbilityTask.PlayMontageAndWaitForEvent.GameplayEventCreationFailureCancels",
-                                 AeonTests::AutomationTestFlags)
-bool FAeonAbilityTaskPlayMontageAndWaitForEventGameplayEventCreationFailureTest::RunTest(const FString&)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FAeonAbilityTaskPlayMontageAndWaitForEventOnlyTriggerOnceStopsLaterEventsTest,
+    "Aeon.AbilityTask.PlayMontageAndWaitForEvent.GameplayEvent.OnlyTriggerOnceStopsLaterEvents",
+    AeonTests::AutomationTestFlags)
+bool FAeonAbilityTaskPlayMontageAndWaitForEventOnlyTriggerOnceStopsLaterEventsTest::RunTest(const FString&)
 {
-    AeonAbilityTaskPlayMontageAndWaitForEventTests::FAbilityTaskTestContext Context;
-    if (const auto Task = AeonAbilityTaskPlayMontageAndWaitForEventTests::CreateTaskForTest(*this, Context))
+    TUniquePtr<AeonTests::FTestWorld> World;
+    auto Fixture = AeonAbilityTaskPlayMontageAndWaitForEventTests::ActivateGameplayEventTask(
+        *this,
+        World,
+        AeonAbilityTaskPlayMontageAndWaitForEventTests::TestEventTag.GetTag(),
+        true,
+        false);
+    const auto Listener =
+        AeonTests::NewTransientObject<UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener>(Fixture.Character);
+    if (TestNotNull(TEXT("Gameplay-event listener should be created"), Listener)
+        && TestNotNull(TEXT("Gameplay-event task should be available"), Fixture.Task)
+        && TestNotNull(TEXT("Gameplay-event character should be available"), Fixture.Character))
     {
-        const auto Listener =
-            AeonAbilityTaskPlayMontageAndWaitForEventTests::BindListener(*this, Context.Ability, Task);
-        Task->SetForceGameplayEventTaskNullForTest(true);
-        Task->ActivateForTest();
+        Fixture.Task->OnEventReceived.AddDynamic(
+            Listener,
+            &UAeonAbilityTaskPlayMontageAndWaitForEventDelegateListener::HandleEventReceived);
 
-        const bool bResult = TestNotNull(TEXT("Listener should bind to the combined task"), Listener)
-            && TestEqual(TEXT("Gameplay-event creation failure should broadcast cancellation"),
-                         Listener->CancelledCount,
-                         1)
-            && TestEqual(TEXT("Gameplay-event creation failure should capture one payload"),
-                         Listener->CancelledPayloadTags.Num(),
-                         1)
-            && TestEqual(TEXT("Gameplay-event creation failure should forward an empty payload tag"),
-                         Listener->CancelledPayloadTags[0],
-                         FGameplayTag::EmptyTag)
-            && TestNull(TEXT("Gameplay-event sub-task should not be created when forced null"),
-                        Task->GetGameplayEventTaskForTest())
-            && TestNotNull(TEXT("Montage sub-task should still be created before activation fails"),
-                           Task->GetMontageTaskForTest())
-            && TestTrue(TEXT("Activation failure should clean up the montage sub-task"),
-                        Task->GetMontageTaskForTest()->bDestroyedForTest);
-        Task->EndTask();
-        return bResult;
+        FGameplayEventData Payload;
+        Payload.EventTag = AeonAbilityTaskPlayMontageAndWaitForEventTests::TestChildEventTag.GetTag();
+        Fixture.Character->GetAeonAbilitySystemComponent()->HandleGameplayEvent(Payload.EventTag, &Payload);
+        Fixture.Character->GetAeonAbilitySystemComponent()->HandleGameplayEvent(Payload.EventTag, &Payload);
+        Fixture.Task->EndTask();
+
+        return TestEqual(TEXT("OnlyTriggerOnce should ignore gameplay events after the first match"),
+                         Listener->EventReceivedCount,
+                         1);
     }
 
     return false;

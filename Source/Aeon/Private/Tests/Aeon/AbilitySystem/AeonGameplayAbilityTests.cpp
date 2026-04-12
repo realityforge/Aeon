@@ -54,7 +54,7 @@ namespace AeonGameplayAbilityTests
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithoutMappingTest,
                                  "Aeon.GameplayAbility.DoesAbilitySatisfyTagRequirements.WithoutMapping",
-                                 AeonTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags);
 bool FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithoutMappingTest::RunTest(const FString&)
 {
     TUniquePtr<AeonTests::FTestWorld> World;
@@ -84,7 +84,7 @@ bool FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithoutMappingTest::Ru
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithMappingExpansionTest,
                                  "Aeon.GameplayAbility.DoesAbilitySatisfyTagRequirements.WithMappingExpansion",
-                                 AeonTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags);
 bool FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithMappingExpansionTest::RunTest(const FString&)
 {
     TUniquePtr<AeonTests::FTestWorld> World;
@@ -128,7 +128,7 @@ bool FAeonGameplayAbilityDoesAbilitySatisfyTagRequirementsWithMappingExpansionTe
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonGameplayAbilityOnGiveAbilityActivateOnGivenActivatesAbilityTest,
                                  "Aeon.GameplayAbility.OnGiveAbility.ActivateOnGivenActivatesAbility",
-                                 AeonTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags);
 bool FAeonGameplayAbilityOnGiveAbilityActivateOnGivenActivatesAbilityTest::RunTest(const FString&)
 {
     TUniquePtr<AeonTests::FTestWorld> World;
@@ -156,7 +156,7 @@ bool FAeonGameplayAbilityOnGiveAbilityActivateOnGivenActivatesAbilityTest::RunTe
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonGameplayAbilityEndAbilityClearsActivateOnGivenSpecTest,
                                  "Aeon.GameplayAbility.EndAbility.ClearsActivateOnGivenSpec",
-                                 AeonTests::AutomationTestFlags)
+                                 AeonTests::AutomationTestFlags);
 bool FAeonGameplayAbilityEndAbilityClearsActivateOnGivenSpecTest::RunTest(const FString&)
 {
     TUniquePtr<AeonTests::FTestWorld> World;
