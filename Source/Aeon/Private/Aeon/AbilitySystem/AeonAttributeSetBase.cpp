@@ -26,6 +26,7 @@ void UAeonAttributeSetBase::AddTagBasedOnValueRelativeToThreshold(const FGamepla
                                                                   const bool bReplicated,
                                                                   const float ErrorTolerance) const
 {
+    // TODO: bReplicated should be reworked or re-aligned with 5.7 model
     if (auto const AbilitySystemComponent = GetOwningAbilitySystemComponent())
     {
         const bool bTagPresent = AbilitySystemComponent->HasMatchingGameplayTag(Tag);
@@ -35,22 +36,22 @@ void UAeonAttributeSetBase::AddTagBasedOnValueRelativeToThreshold(const FGamepla
         {
             if (bReplicated)
             {
-                AbilitySystemComponent->SetReplicatedLooseGameplayTagCount(Tag, 1);
+                AbilitySystemComponent->AddLooseGameplayTag(Tag, 1, EGameplayTagReplicationState::TagOnly);
             }
             else
             {
-                AbilitySystemComponent->SetLooseGameplayTagCount(Tag, 1);
+                AbilitySystemComponent->AddLooseGameplayTag(Tag);
             }
         }
         else if (!bThresholdTriggered && bTagPresent)
         {
             if (bReplicated)
             {
-                AbilitySystemComponent->SetReplicatedLooseGameplayTagCount(Tag, 0);
+                AbilitySystemComponent->RemoveLooseGameplayTag(Tag, 1, EGameplayTagReplicationState::TagOnly);
             }
             else
             {
-                AbilitySystemComponent->SetLooseGameplayTagCount(Tag, 0);
+                AbilitySystemComponent->RemoveLooseGameplayTag(Tag);
             }
         }
     }
