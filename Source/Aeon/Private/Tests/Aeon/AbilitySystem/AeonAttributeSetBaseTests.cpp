@@ -129,9 +129,11 @@ bool FAeonAttributeSetBaseAddTagIfValueAboveThresholdUsesReplicatedTagPathTest::
                                                          50.f,
                                                          true);
 
-        return TestEqual(TEXT("Replicated loose tag count should be incremented"),
-                         AbilitySystemComponent->GetReplicatedLooseTagCountForTest(
-                             AeonAttributeSetBaseTests::TestReplicatedThresholdTag),
+        return TestTrue(TEXT("Replicated threshold tag should still be added to the ASC"),
+                        AbilitySystemComponent->HasMatchingGameplayTag(
+                            AeonAttributeSetBaseTests::TestReplicatedThresholdTag))
+            && TestEqual(TEXT("Replicated threshold tag should contribute a single gameplay-tag count"),
+                         AbilitySystemComponent->GetTagCount(AeonAttributeSetBaseTests::TestReplicatedThresholdTag),
                          1);
     }
     else

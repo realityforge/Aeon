@@ -15,7 +15,9 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "Aeon/AbilitySystem/AeonAbilitySet.h"
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
+#include "Aeon/AbilitySystem/AeonAbilitySystemPostInitInterface.h"
 #include "Aeon/AbilitySystem/AeonAttributeSetBase.h"
 #include "Aeon/AbilitySystem/AeonGameplayAbility.h"
 #include "GameFramework/Actor.h"
@@ -34,6 +36,29 @@ public:
     {
         return GetReplicatedLooseTags().TagMap.FindRef(Tag);
     }
+
+    int32 GetMinimalReplicationTagCountForTest(const FGameplayTag& Tag) const
+    {
+        return GetMinimalReplicationTags().TagMap.FindRef(Tag);
+    }
+
+    void MarkAbilitySystemReadyForTest() { MarkAbilitySystemReady(); }
+
+    void CancelPostInitForTeardownForTest() { CancelPostInitForTeardown(); }
+
+    void NotifyAttributeSetRegisteredForTest(UAttributeSet* const AttributeSet)
+    {
+        NotifyAttributeSetRegistered(AttributeSet);
+    }
+
+    void NotifyAttributeSetRemovedForTest(UAttributeSet* const AttributeSet)
+    {
+        NotifyAttributeSetRemoved(AttributeSet);
+    }
+
+    void BeginAeonMutationBatchForTest() { BeginAeonMutationBatch(); }
+
+    void EndAeonMutationBatchForTest() { EndAeonMutationBatch(); }
 };
 
 UCLASS(NotBlueprintable)
@@ -77,7 +102,7 @@ public:
 
     static void ResetMutableStateForTest()
     {
-        auto* Ability = GetMutableDefault<ThisClass>();
+        const auto Ability = GetMutableDefault<ThisClass>();
         check(Ability);
 
         Ability->SetAssetTagsForTest(FGameplayTagContainer());
@@ -129,6 +154,7 @@ public:
 
     void SetIsActiveForTest(const bool bValue) { bIsActive = bValue; }
 
+protected:
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                  const FGameplayAbilityActorInfo* ActorInfo,
                                  const FGameplayAbilityActivationInfo ActivationInfo,
@@ -164,7 +190,7 @@ public:
 };
 
 UCLASS(NotBlueprintable)
-class UAeonAutomationTestAttributeSet final : public UAeonAttributeSetBase
+class UAeonAutomationTestAttributeSet : public UAeonAttributeSetBase
 {
     GENERATED_BODY()
 
@@ -203,6 +229,73 @@ public:
                                                     const float ErrorTolerance = 0.001f) const
     {
         AdjustAttributeAfterMaxValueChanges(Attribute, OldMaxValue, NewMaxValue, ErrorTolerance);
+    }
+};
+
+UCLASS(NotBlueprintable)
+class UAeonAutomationTestPostInitAttributeSet final :
+    public UAeonAutomationTestAttributeSet,
+    public IAeonAbilitySystemPostInitInterface
+{
+    GENERATED_BODY()
+
+public:
+    enum class EBehavior : uint8
+    {
+        None,
+        RemoveSelf,
+        GrantNestedAbilitySet
+    };
+
+    inline static int32 PostInitCallCount = 0;
+    inline static TArray<float> ObservedResourceValues;
+    inline static TArray<FString> InvocationOrder;
+    inline static EBehavior Behavior = EBehavior::None;
+    inline static TObjectPtr<UAeonAbilitySet> NestedAbilitySet{ nullptr };
+    inline static TObjectPtr<UObject> NestedSourceObject{ nullptr };
+
+    static void ResetPostInitState()
+    {
+        PostInitCallCount = 0;
+        ObservedResourceValues.Reset();
+        InvocationOrder.Reset();
+        Behavior = EBehavior::None;
+        NestedAbilitySet = nullptr;
+        NestedSourceObject = nullptr;
+    }
+
+    virtual void OnAbilitySystemPostInit() override
+    {
+        ++PostInitCallCount;
+        ObservedResourceValues.Add(GetResource());
+        InvocationOrder.Add(GetName());
+
+        if (const auto AbilitySystemComponent = GetOwningAbilitySystemComponent())
+        {
+            switch (Behavior)
+            {
+                case EBehavior::RemoveSelf:
+                    AbilitySystemComponent->RemoveSpawnedAttribute(this);
+                    break;
+
+                case EBehavior::GrantNestedAbilitySet:
+                    if (NestedAbilitySet)
+                    {
+                        TObjectPtr<UAeonAbilitySet> NestedAbilitySetToGrant = NestedAbilitySet;
+                        NestedAbilitySet = nullptr;
+                        NestedAbilitySetToGrant->GrantToAbilitySystem(
+                            AbilitySystemComponent,
+                            nullptr,
+                            0,
+                            NestedSourceObject ? NestedSourceObject.Get() : AbilitySystemComponent->GetOwner());
+                    }
+                    break;
+
+                case EBehavior::None:
+                default:
+                    break;
+            }
+        }
     }
 };
 

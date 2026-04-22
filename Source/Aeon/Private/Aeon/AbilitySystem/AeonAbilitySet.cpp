@@ -128,6 +128,11 @@ void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
     {
         if (AbilitySystemComponent->IsOwnerActorAuthoritative())
         {
+            const auto AeonAbilitySystemComponent = Cast<UAeonAbilitySystemComponent>(AbilitySystemComponent);
+            if (AeonAbilitySystemComponent)
+            {
+                AeonAbilitySystemComponent->BeginAeonMutationBatch();
+            }
             for (const auto& Handle : AbilitySpecHandles)
             {
                 if (Handle.IsValid())
@@ -146,6 +151,10 @@ void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
 
             for (const auto AttributeSet : AttributeSets)
             {
+                if (AeonAbilitySystemComponent)
+                {
+                    AeonAbilitySystemComponent->NotifyAttributeSetRemoved(AttributeSet);
+                }
                 AbilitySystemComponent->RemoveSpawnedAttribute(AttributeSet);
             }
 
@@ -156,6 +165,10 @@ void FAeonAbilitySetHandles::RemoveFromAbilitySystemComponent()
             AttributeSets.Reset();
             Tags.Reset();
             AbilitySystemComponent = nullptr;
+            if (AeonAbilitySystemComponent)
+            {
+                AeonAbilitySystemComponent->EndAeonMutationBatch();
+            }
         }
         else
         {
@@ -188,8 +201,25 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
                                            UObject* SourceObject) const
 {
     checkf(AbilitySystemComponent, TEXT("AbilitySystemComponent must not be null"));
+
     if (AbilitySystemComponent->IsOwnerActorAuthoritative())
     {
+        const auto AeonAbilitySystemComponent = Cast<UAeonAbilitySystemComponent>(AbilitySystemComponent);
+        if (!AeonAbilitySystemComponent)
+        {
+            UE_LOGFMT(LogAeon,
+                      Log,
+                      "GrantToAbilitySystem() requires a UAeonAbilitySystemComponent to support "
+                      "IAeonAbilitySystemPostInitInterface on AttributeSet but received {AbilitySystemComponent}. "
+                      "IAeonAbilitySystemPostInitInterface::OnAbilitySystemPostInit() will not be invoked for "
+                      "any AttributeSets granted.",
+                      GetNameSafe(AbilitySystemComponent));
+        }
+        if (AeonAbilitySystemComponent)
+        {
+            AeonAbilitySystemComponent->BeginAeonMutationBatch();
+        }
+
         if (OutGrantedHandles)
         {
             OutGrantedHandles->AbilitySystemComponent = AbilitySystemComponent;
@@ -226,6 +256,10 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
                 const auto Outer = AbilitySystemComponent->GetOwner();
                 const auto AttributeSet = NewObject<UAttributeSet>(Outer, Entry.AttributeSet);
                 AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
+                if (AeonAbilitySystemComponent)
+                {
+                    AeonAbilitySystemComponent->NotifyAttributeSetRegistered(AttributeSet);
+                }
                 if (OutGrantedHandles)
                 {
                     OutGrantedHandles->AttributeSets.Add(AttributeSet);
@@ -309,7 +343,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
             if (const auto& Entry = AttributeValues[Index]; Entry.Attribute.IsValid() && Entry.Value.IsValid())
             {
                 // ReSharper disable once CppTooWideScopeInitStatement
-                const FGameplayAttribute& Attribute = Entry.Attribute;
+                const auto& Attribute = Entry.Attribute;
                 if (AbilitySystemComponent->HasAttributeSetForAttribute(Attribute))
                 {
                     const float Level = Entry.Level + LevelDelta;
@@ -337,10 +371,14 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
                           Index);
             }
         }
+        if (AeonAbilitySystemComponent)
+        {
+            AeonAbilitySystemComponent->EndAeonMutationBatch();
+        }
     }
     else
     {
-        UE_LOGFMT(LogAeon, Warning, "GiveToAbilitySystem() must be invoked when OwnerActor is Authoritative");
+        UE_LOGFMT(LogAeon, Warning, "GrantToAbilitySystem() must be invoked when OwnerActor is Authoritative");
     }
 }
 

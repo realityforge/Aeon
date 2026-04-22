@@ -63,17 +63,20 @@ void AAeonCharacterBase::GrantAbilitySet(const UAeonAbilitySet* const Data, FAeo
 void AAeonCharacterBase::GrantAbilitySetToAbilitySystemSync()
 {
     check(!AbilitySet.IsNull());
-    if (const auto Data = AbilitySet.LoadSynchronous())
+    if (!bAbilitySystemTeardownStarted)
     {
-        GrantAbilitySet(Data);
-        PostInitializeAbilitySystem();
-    }
-    else
-    {
-        ensureMsgf(false,
-                   TEXT("AbilitySet %s failed to load synchronously for actor %s"),
-                   *AbilitySet.GetAssetName(),
-                   *GetActorNameOrLabel());
+        if (const auto Data = AbilitySet.LoadSynchronous())
+        {
+            GrantAbilitySet(Data);
+            PostInitializeAbilitySystem();
+        }
+        else
+        {
+            ensureMsgf(false,
+                       TEXT("AbilitySet %s failed to load synchronously for actor %s"),
+                       *AbilitySet.GetAssetName(),
+                       *GetActorNameOrLabel());
+        }
     }
 }
 
@@ -81,20 +84,24 @@ void AAeonCharacterBase::GrantAbilitySetToAbilitySystemAsync()
 {
     check(!AbilitySet.IsNull());
 
+    const TWeakObjectPtr WeakThis(this);
     const auto Result = UAssetManager::GetStreamableManager().RequestAsyncLoad(
         AbilitySet.ToSoftObjectPath(),
-        FStreamableDelegate::CreateLambda([this]() {
-            if (const auto Data = AbilitySet.Get())
+        FStreamableDelegate::CreateLambda([WeakThis]() {
+            if (const auto Character = WeakThis.Get(); IsValid(Character) && !Character->bAbilitySystemTeardownStarted)
             {
-                GrantAbilitySet(Data);
-                PostInitializeAbilitySystem();
-            }
-            else
-            {
-                ensureMsgf(false,
-                           TEXT("AbilitySet %s failed to load asynchronously for actor %s"),
-                           *AbilitySet.GetAssetName(),
-                           *GetActorNameOrLabel());
+                if (const auto Data = Character->AbilitySet.Get())
+                {
+                    Character->GrantAbilitySet(Data);
+                    Character->PostInitializeAbilitySystem();
+                }
+                else
+                {
+                    ensureMsgf(false,
+                               TEXT("AbilitySet %s failed to load asynchronously for actor %s"),
+                               *Character->AbilitySet.GetAssetName(),
+                               *Character->GetActorNameOrLabel());
+                }
             }
         }));
     ensureMsgf(Result.IsValid(),
@@ -127,4 +134,31 @@ void AAeonCharacterBase::ConfigureAbilitySystemComponent()
             }
         }
     }
+}
+
+void AAeonCharacterBase::PostInitializeAbilitySystem()
+{
+    Super::PostInitializeAbilitySystem();
+
+    if (!bAbilitySystemTeardownStarted)
+    {
+        if (const auto AeonAbilitySystemComponent = GetAeonAbilitySystemComponent())
+        {
+            AeonAbilitySystemComponent->MarkAbilitySystemReady();
+        }
+    }
+}
+
+void AAeonCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (!bAbilitySystemTeardownStarted)
+    {
+        bAbilitySystemTeardownStarted = true;
+        if (const auto AeonAbilitySystemComponent = GetAeonAbilitySystemComponent())
+        {
+            AeonAbilitySystemComponent->CancelPostInitForTeardown();
+        }
+    }
+
+    Super::EndPlay(EndPlayReason);
 }

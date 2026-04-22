@@ -20,6 +20,20 @@
 #define UE_API AEON_API
 
 class UAeonAbilityTagRelationshipMapping;
+class UAttributeSet;
+class UAeonAbilitySet;
+struct FAeonAbilitySetHandles;
+class AAeonCharacterBase;
+
+enum class EAeonPostInitState : uint8
+{
+    /** The set is registered and waiting for its one-shot post-init callback. */
+    Pending,
+    /** The callback is currently running, so removal or teardown can react without double-completing it. */
+    Initializing,
+    /** This registration lifetime has already consumed its post-init attempt. */
+    Completed
+};
 
 /** The AbilitySystemComponent specialization used in Aeon */
 UCLASS()
@@ -28,6 +42,22 @@ class UE_API UAeonAbilitySystemComponent : public UAbilitySystemComponent
     GENERATED_BODY()
 
 public:
+    /**
+     * Return whether Aeon's startup lifecycle has marked this Ability System ready.
+     *
+     * <p>This becomes true once startup configuration is complete and stays true for the remainder of the ASC instance
+     * lifetime, including during teardown.</p>
+     */
+    bool IsAbilitySystemReady() const;
+
+    /**
+     * Return whether a ready Ability System still has Aeon-managed post-init work to drain.
+     *
+     * <p>This reports true while a mutation batch is open, while tracked post-init sets are pending, or while a
+     * post-init callback is currently running. It reports false before readiness and after teardown begins.</p>
+     */
+    bool HasOutstandingPostInitWork() const;
+
     /**
      * Callback invoked when an AbilityInputAction has associated Input pressed.
      *
@@ -102,6 +132,61 @@ public:
                                       FGameplayTagContainer& OutTargetBlockedTags) const;
 
 #pragma endregion
+
+private:
+    friend class UAeonAbilitySet;
+    friend struct FAeonAbilitySetHandles;
+
+protected:
+    friend class AAeonCharacterBase;
+
+    /*
+     * Internal Aeon lifecycle hooks for trusted callers only.
+     *
+     * <p>These methods form the ASC-side
+     * state machine for automatic AttributeSet post-init.
+     * Production code reaches them through Aeon character
+     * startup/teardown and Aeon ability-set
+     * grant or removal flows rather than by calling them directly.</p>
+     */
+    void MarkAbilitySystemReady();
+    void BeginAeonMutationBatch();
+    void EndAeonMutationBatch();
+
+    void NotifyAttributeSetRegistered(UAttributeSet* AttributeSet);
+    void NotifyAttributeSetRemoved(UAttributeSet* AttributeSet);
+
+    void RunInitialReadyScanIfNeeded();
+    void DrainPendingPostInitIfNeeded();
+    void CancelPostInitForTeardown();
+
+private:
+    bool IsTrackedOptInSet(UAttributeSet* AttributeSet) const;
+    bool IsCurrentlyRegisteredSet(const UAttributeSet* AttributeSet) const;
+    void PurgeInvalidPostInitEntries();
+
+    /** Sticky once startup completes; intentionally remains true during teardown for stable external queries. */
+    UPROPERTY(Transient)
+    bool bAbilitySystemReady{ false };
+
+    /** Ensures the ready-time bookkeeping validation scan runs only once per ASC instance. */
+    UPROPERTY(Transient)
+    bool bHasCompletedInitialReadyScan{ false };
+
+    /** Terminal flag that turns later lifecycle notifications into diagnosed no-ops. */
+    UPROPERTY(Transient)
+    bool bIsTearingDown{ false };
+
+    /** Re-entrancy guard so nested grants schedule later work instead of recursively re-entering the drain loop. */
+    UPROPERTY(Transient)
+    bool bIsDrainingPendingPostInit{ false };
+
+    /** Nesting depth for Aeon-owned structural ASC mutations; post-init drains after it reaches 0. */
+    UPROPERTY(Transient)
+    int32 AeonMutationBatchDepth{ 0 };
+
+    /** Tracks only opt-in sets, keyed by instance so re-registering the same object creates a new lifetime. */
+    TMap<TWeakObjectPtr<UAttributeSet>, EAeonPostInitState> TrackedPostInitStates;
 };
 
 #undef UE_API

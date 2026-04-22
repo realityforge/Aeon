@@ -409,4 +409,127 @@ bool FAeonAbilitySetRemoveFromAbilitySystemComponentIsIdempotentTest::RunTest(co
     }
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FAeonAbilitySetGrantToNonAeonAbilitySystemComponentGrantsWithoutPostInitTest,
+    "Aeon.AbilitySet.GrantToAbilitySystem.NonAeonAbilitySystemComponentGrantsWithoutPostInit",
+    AeonTests::AutomationTestFlags)
+bool FAeonAbilitySetGrantToNonAeonAbilitySystemComponentGrantsWithoutPostInitTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (AeonTests::CreateTestWorld(*this, World, TEXT("AeonAbilitySetNonAeonGrantWorld")))
+    {
+        const auto Actor = World->SpawnActor<AActor>();
+        const auto AbilitySystemComponent = NewObject<UAbilitySystemComponent>(Actor, NAME_None, RF_Transient);
+        if (TestNotNull(TEXT("Plain ability system component should be created"), AbilitySystemComponent))
+        {
+            AbilitySystemComponent->RegisterComponent();
+            AbilitySystemComponent->InitAbilityActorInfo(Actor, Actor);
+
+            const auto AbilitySet = AeonAbilitySetTests::CreateAbilitySet();
+            if (AeonAbilitySetTests::ConfigureValidAbilitySet(*this, AbilitySet))
+            {
+                TArray<FAeonAttributeSetEntry> AttributeSets;
+                FAeonAttributeSetEntry AttributeSetEntry;
+                AttributeSetEntry.AttributeSet = UAeonAutomationTestPostInitAttributeSet::StaticClass();
+                if (!TestTrue(TEXT("Should set post-init AttributeSets"),
+                              AeonTests::SetPropertyValue(*this,
+                                                          AbilitySet,
+                                                          TEXT("AttributeSets"),
+                                                          AttributeSets = { AttributeSetEntry })))
+                {
+                    return false;
+                }
+
+                UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+                AddExpectedMessagePlain(
+                    TEXT("IAeonAbilitySystemPostInitInterface::OnAbilitySystemPostInit() will not be invoked"),
+                    ELogVerbosity::Log,
+                    EAutomationExpectedMessageFlags::Contains,
+                    1);
+
+                FAeonAbilitySetHandles Handles;
+                AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, &Handles, 0, Actor);
+
+                return TestTrue(TEXT("Grant handles should remain valid after a non-Aeon grant"), Handles.IsValid())
+                    && TestTrue(
+                           TEXT("Loose gameplay tags should still be granted on a non-Aeon ASC"),
+                           AbilitySystemComponent->HasMatchingGameplayTag(AeonAbilitySetTests::TestLooseGameplayTag))
+                    && TestNotNull(TEXT("Abilities should still be granted on a non-Aeon ASC"),
+                                   AbilitySystemComponent->FindAbilitySpecFromClass(
+                                       UAeonAutomationTestGameplayAbility::StaticClass()))
+                    && TestEqual(TEXT("Gameplay effects should still be applied on a non-Aeon ASC"),
+                                 AbilitySystemComponent->GetActiveEffects(FGameplayEffectQuery()).Num(),
+                                 1)
+                    && TestTrue(TEXT("Attribute sets should still be added on a non-Aeon ASC"),
+                                AbilitySystemComponent->HasAttributeSetForAttribute(
+                                    UAeonAutomationTestAttributeSet::GetResourceAttribute()))
+                    && TestEqual(TEXT("Attribute initializers should still apply on a non-Aeon ASC"),
+                                 AbilitySystemComponent->GetNumericAttribute(
+                                     UAeonAutomationTestAttributeSet::GetResourceAttribute()),
+                                 25.f)
+                    && TestEqual(TEXT("Post-init should remain disabled on a non-Aeon ASC"),
+                                 UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                                 0);
+            }
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FAeonAbilitySetRemoveFromNonAeonAbilitySystemComponentRemovesGrantedStateTest,
+    "Aeon.AbilitySet.RemoveFromAbilitySystemComponent.NonAeonAbilitySystemComponentRemovesGrantedState",
+    AeonTests::AutomationTestFlags)
+bool FAeonAbilitySetRemoveFromNonAeonAbilitySystemComponentRemovesGrantedStateTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (AeonTests::CreateTestWorld(*this, World, TEXT("AeonAbilitySetNonAeonRemoveWorld")))
+    {
+        const auto Actor = World->SpawnActor<AActor>();
+        const auto AbilitySystemComponent = NewObject<UAbilitySystemComponent>(Actor, NAME_None, RF_Transient);
+        if (TestNotNull(TEXT("Plain ability system component should be created"), AbilitySystemComponent))
+        {
+            AbilitySystemComponent->RegisterComponent();
+            AbilitySystemComponent->InitAbilityActorInfo(Actor, Actor);
+
+            const auto AbilitySet = AeonAbilitySetTests::CreateAbilitySet();
+            if (AeonAbilitySetTests::ConfigureValidAbilitySet(*this, AbilitySet))
+            {
+                FAeonAbilitySetHandles Handles;
+                AddExpectedMessagePlain(
+                    TEXT("IAeonAbilitySystemPostInitInterface::OnAbilitySystemPostInit() will not be invoked"),
+                    ELogVerbosity::Log,
+                    EAutomationExpectedMessageFlags::Contains,
+                    1);
+                AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, &Handles, 0, Actor);
+
+                if (!TestTrue(TEXT("Handles should remain valid after a non-Aeon grant"), Handles.IsValid()))
+                {
+                    return false;
+                }
+
+                Handles.RemoveFromAbilitySystemComponent();
+
+                return TestFalse(TEXT("Handles should become invalid after removing from a non-Aeon ASC"),
+                                 Handles.IsValid())
+                    && TestNull(TEXT("Granted ability should be removed from a non-Aeon ASC"),
+                                AbilitySystemComponent->FindAbilitySpecFromClass(
+                                    UAeonAutomationTestGameplayAbility::StaticClass()))
+                    && TestEqual(TEXT("Granted effect should be removed from a non-Aeon ASC"),
+                                 AbilitySystemComponent->GetActiveEffects(FGameplayEffectQuery()).Num(),
+                                 0)
+                    && TestFalse(TEXT("Granted attribute set should be removed from a non-Aeon ASC"),
+                                 AbilitySystemComponent->HasAttributeSetForAttribute(
+                                     UAeonAutomationTestAttributeSet::GetResourceAttribute()))
+                    && TestFalse(
+                           TEXT("Granted loose gameplay tags should be removed from a non-Aeon ASC"),
+                           AbilitySystemComponent->HasMatchingGameplayTag(AeonAbilitySetTests::TestLooseGameplayTag));
+            }
+        }
+    }
+
+    return false;
+}
+
 #endif

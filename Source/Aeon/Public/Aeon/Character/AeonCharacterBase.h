@@ -61,6 +61,8 @@ class UE_API AAeonCharacterBase : public AModularGasCharacter
     /** The low-level method to grant the AbilitySet to the AbilitySystem. */
     void GrantAbilitySet(const UAeonAbilitySet* Data, FAeonAbilitySetHandles* OutGrantedHandles = nullptr);
 
+    bool bAbilitySystemTeardownStarted{ false };
+
 protected:
     FORCEINLINE EAbilitySetLoadPolicy GetAbilitySetLoadPolicy() const { return AbilitySetLoadPolicy; }
     FORCEINLINE void SetAbilitySetLoadPolicy(const EAbilitySetLoadPolicy InAbilitySetLoadPolicy)
@@ -72,10 +74,15 @@ protected:
 
 #pragma region AModularGasCharacter
     virtual void ConfigureAbilitySystemComponent() override;
+    virtual void PostInitializeAbilitySystem() override;
 #pragma endregion
 
 public:
     explicit AAeonCharacterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+#pragma region AActor Interface
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+#pragma endregion
 
 #if WITH_EDITOR
     virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;

@@ -13,6 +13,7 @@
  */
 #if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
+    #include "Aeon/AbilitySystem/AeonAbilitySet.h"
     #include "Aeon/AbilitySystem/AeonAbilityTagRelationshipMapping.h"
     #include "Aeon/AeonGameplayTags.h"
     #include "GameplayAbilitySpec.h"
@@ -70,6 +71,49 @@ namespace AeonAbilitySystemComponentTests
         }
 
         return AbilitySystemComponent->GiveAbility(Spec);
+    }
+
+    UAeonAbilitySet* CreatePostInitAbilitySet(FAutomationTestBase& Test,
+                                              UObject* Outer,
+                                              const TArray<TSubclassOf<UAttributeSet>>& AttributeSetClasses,
+                                              const TOptional<float> InitialResourceValue = TOptional<float>())
+    {
+        const auto AbilitySet = AeonTests::NewTransientObject<UAeonAbilitySet>(Outer);
+        if (!Test.TestNotNull(TEXT("Post-init ability set should be created"), AbilitySet))
+        {
+            return nullptr;
+        }
+
+        TArray<FAeonAttributeSetEntry> AttributeSets;
+        for (const auto AttributeSetClass : AttributeSetClasses)
+        {
+            FAeonAttributeSetEntry Entry;
+            Entry.AttributeSet = AttributeSetClass;
+            AttributeSets.Add(Entry);
+        }
+
+        if (!Test.TestTrue(TEXT("Post-init ability set should define attribute sets"),
+                           AeonTests::SetPropertyValue(Test, AbilitySet, TEXT("AttributeSets"), AttributeSets)))
+        {
+            return nullptr;
+        }
+
+        if (InitialResourceValue.IsSet())
+        {
+            TArray<FAeonAttributeInitializer> AttributeValues;
+            FAeonAttributeInitializer AttributeValue;
+            AttributeValue.Attribute = UAeonAutomationTestAttributeSet::GetResourceAttribute();
+            AttributeValue.Value = FScalableFloat(InitialResourceValue.GetValue());
+            AttributeValues.Add(AttributeValue);
+
+            if (!Test.TestTrue(TEXT("Post-init ability set should define attribute initializers"),
+                               AeonTests::SetPropertyValue(Test, AbilitySet, TEXT("AttributeValues"), AttributeValues)))
+            {
+                return nullptr;
+            }
+        }
+
+        return AbilitySet;
     }
 
 } // namespace AeonAbilitySystemComponentTests
@@ -327,6 +371,432 @@ bool FAeonAbilitySystemComponentApplyAbilityBlockAndCancelTagsUsesMappingTest::R
     {
         return false;
     }
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentPreReadyTrackedSetDoesNotDispatchTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.PreReadyTrackedSetDoesNotDispatch",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentPreReadyTrackedSetDoesNotDispatchTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() },
+            25.f);
+        if (TestNotNull(TEXT("Post-init ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            FAeonAbilitySetHandles Handles;
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, &Handles, 0, Actor);
+
+            return TestFalse(TEXT("Ability system should not be ready before the ready transition"),
+                             AbilitySystemComponent->IsAbilitySystemReady())
+                && TestFalse(TEXT("Outstanding post-init work should stay hidden until ready"),
+                             AbilitySystemComponent->HasOutstandingPostInitWork())
+                && TestEqual(TEXT("Pre-ready grant should not dispatch post-init"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentReadyTransitionDispatchesTrackedSetTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.ReadyTransitionDispatchesTrackedSet",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentReadyTransitionDispatchesTrackedSetTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() },
+            25.f);
+        if (TestNotNull(TEXT("Post-init ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            return TestTrue(TEXT("Ready transition should mark the ASC ready"),
+                            AbilitySystemComponent->IsAbilitySystemReady())
+                && TestFalse(TEXT("Outstanding post-init work should be drained after ready transition"),
+                             AbilitySystemComponent->HasOutstandingPostInitWork())
+                && TestEqual(TEXT("Ready transition should dispatch tracked post-init sets exactly once"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             1)
+                && TestEqual(TEXT("Grant-time attribute initializers should be visible during post-init"),
+                             UAeonAutomationTestPostInitAttributeSet::ObservedResourceValues[0],
+                             25.f);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentReadyTransitionIgnoresNonOptInSetTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.ReadyTransitionIgnoresNonOptInSet",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentReadyTransitionIgnoresNonOptInSetTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestAttributeSet::StaticClass() },
+            10.f);
+        if (TestNotNull(TEXT("Non-opt-in ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            return TestEqual(TEXT("Non-opt-in sets should not dispatch post-init"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0)
+                && TestFalse(TEXT("Non-opt-in sets should not leave outstanding post-init work"),
+                             AbilitySystemComponent->HasOutstandingPostInitWork());
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentReadyTransitionUsesRegisteredSetOrderTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.ReadyTransitionUsesRegisteredSetOrder",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentReadyTransitionUsesRegisteredSetOrderTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass(),
+              UAeonAutomationTestPostInitAttributeSet::StaticClass() });
+        if (TestNotNull(TEXT("Ordered post-init ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+
+            TArray<FString> RegisteredNames;
+            for (const UAttributeSet* const AttributeSet : AbilitySystemComponent->GetSpawnedAttributes())
+            {
+                if (const auto PostInitSet = Cast<UAeonAutomationTestPostInitAttributeSet>(AttributeSet))
+                {
+                    RegisteredNames.Add(PostInitSet->GetName());
+                }
+            }
+
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+            return TestEqual(TEXT("Two tracked post-init sets should be registered"), RegisteredNames.Num(), 2)
+                && TestEqual(TEXT("Two post-init invocations should occur"),
+                             UAeonAutomationTestPostInitAttributeSet::InvocationOrder.Num(),
+                             2)
+                && TestEqual(TEXT("Dispatch order should follow registered-set enumeration"),
+                             UAeonAutomationTestPostInitAttributeSet::InvocationOrder[0],
+                             RegisteredNames[0])
+                && TestEqual(TEXT("Dispatch order should follow registered-set enumeration"),
+                             UAeonAutomationTestPostInitAttributeSet::InvocationOrder[1],
+                             RegisteredNames[1]);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentRuntimeGrantWaitsForOuterBatchTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.RuntimeGrantWaitsForOuterBatch",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentRuntimeGrantWaitsForOuterBatchTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+        AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() },
+            30.f);
+        if (TestNotNull(TEXT("Runtime post-init ability set should be available"), AbilitySet))
+        {
+            AbilitySystemComponent->BeginAeonMutationBatchForTest();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+
+            const bool bBlockedWhileOuterBatchOpen =
+                TestTrue(TEXT("Ready ASC should report outstanding work while the outer batch is open"),
+                         AbilitySystemComponent->HasOutstandingPostInitWork())
+                && TestEqual(TEXT("Runtime grant should not dispatch until the outer batch closes"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0);
+
+            AbilitySystemComponent->EndAeonMutationBatchForTest();
+            return bBlockedWhileOuterBatchOpen
+                && TestEqual(TEXT("Closing the outermost batch should dispatch post-init"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             1)
+                && TestFalse(TEXT("Outstanding work should be drained after the outermost batch closes"),
+                             AbilitySystemComponent->HasOutstandingPostInitWork());
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentRepeatedReadyMarkIsNoOpTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.RepeatedReadyMarkIsNoOp",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentRepeatedReadyMarkIsNoOpTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() });
+        if (TestNotNull(TEXT("Repeated-ready ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            AddExpectedMessagePlain(TEXT("MarkAbilitySystemReady() invoked more than once"),
+                                    ELogVerbosity::Warning,
+                                    EAutomationExpectedMessageFlags::Contains,
+                                    1);
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            return TestEqual(TEXT("Repeated ready marks should not redispatch post-init"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             1);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentReentrantNestedGrantDrainsLaterTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.ReentrantNestedGrantDrainsLater",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentReentrantNestedGrantDrainsLaterTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        UAeonAutomationTestPostInitAttributeSet::Behavior =
+            UAeonAutomationTestPostInitAttributeSet::EBehavior::GrantNestedAbilitySet;
+        UAeonAutomationTestPostInitAttributeSet::NestedAbilitySet =
+            AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+                *this,
+                Actor,
+                { UAeonAutomationTestPostInitAttributeSet::StaticClass() },
+                40.f);
+
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() },
+            20.f);
+        if (TestNotNull(TEXT("Nested post-init ability set should be available"), AbilitySet)
+            && TestNotNull(TEXT("Nested grant ability set should be available"),
+                           UAeonAutomationTestPostInitAttributeSet::NestedAbilitySet.Get()))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            return TestEqual(TEXT("Re-entrant nested grant should eventually dispatch twice"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             2)
+                && TestEqual(TEXT("Initial and nested post-init values should both be observed"),
+                             UAeonAutomationTestPostInitAttributeSet::ObservedResourceValues.Num(),
+                             2)
+                && TestEqual(TEXT("Initial and nested grants should produce two invocation records"),
+                             UAeonAutomationTestPostInitAttributeSet::InvocationOrder.Num(),
+                             2)
+                && TestNotEqual(TEXT("Initial and nested callbacks should run on distinct set instances"),
+                                UAeonAutomationTestPostInitAttributeSet::InvocationOrder[0],
+                                UAeonAutomationTestPostInitAttributeSet::InvocationOrder[1]);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentRemovalBeforeDispatchSkipsSetTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.RemovalBeforeDispatchSkipsSet",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentRemovalBeforeDispatchSkipsSetTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() });
+        if (TestNotNull(TEXT("Removal-before-dispatch ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            FAeonAbilitySetHandles Handles;
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, &Handles, 0, Actor);
+            Handles.RemoveFromAbilitySystemComponent();
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            return TestEqual(TEXT("Removing the set before ready should skip post-init"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentRemovalDuringDispatchAllowsNewLifetimeTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.RemovalDuringDispatchAllowsNewLifetime",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentRemovalDuringDispatchAllowsNewLifetimeTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        UAeonAutomationTestPostInitAttributeSet::Behavior =
+            UAeonAutomationTestPostInitAttributeSet::EBehavior::RemoveSelf;
+
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() });
+        if (TestNotNull(TEXT("Removal-during-dispatch ability set should be available"), AbilitySet))
+        {
+            const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+            const auto AttributeSet = const_cast<UAeonAutomationTestPostInitAttributeSet*>(
+                AbilitySystemComponent->GetSet<UAeonAutomationTestPostInitAttributeSet>());
+            if (TestNotNull(TEXT("Tracked post-init attribute set should be registered"), AttributeSet))
+            {
+                AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+                const bool bRemovalSucceeded =
+                    TestEqual(TEXT("Removal during dispatch should still invoke post-init once"),
+                              UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                              1)
+                    && TestFalse(TEXT("Removing the set during dispatch should unregister it"),
+                                 AbilitySystemComponent->HasAttributeSetForAttribute(
+                                     UAeonAutomationTestAttributeSet::GetResourceAttribute()));
+
+                UAeonAutomationTestPostInitAttributeSet::Behavior =
+                    UAeonAutomationTestPostInitAttributeSet::EBehavior::None;
+                AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
+                AbilitySystemComponent->NotifyAttributeSetRegisteredForTest(AttributeSet);
+
+                return bRemovalSucceeded
+                    && TestEqual(TEXT("Re-registering the same instance should create a new post-init lifetime"),
+                                 UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                                 2);
+            }
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentTeardownCancelsOutstandingWorkTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.TeardownCancelsOutstandingWork",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentTeardownCancelsOutstandingWorkTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+        AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+        AbilitySystemComponent->BeginAeonMutationBatchForTest();
+
+        const auto AbilitySet = AeonAbilitySystemComponentTests::CreatePostInitAbilitySet(
+            *this,
+            Actor,
+            { UAeonAutomationTestPostInitAttributeSet::StaticClass() });
+        if (TestNotNull(TEXT("Teardown ability set should be available"), AbilitySet))
+        {
+            AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, 0, Actor);
+            const bool bPendingBeforeTeardown =
+                TestTrue(TEXT("Ready ASC should report outstanding work while a batch is open"),
+                         AbilitySystemComponent->HasOutstandingPostInitWork())
+                && TestEqual(TEXT("Open batch should prevent post-init dispatch before teardown"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0);
+
+            AddExpectedMessagePlain(TEXT("CancelPostInitForTeardown() interrupted AbilitySystemComponent"),
+                                    ELogVerbosity::Warning,
+                                    EAutomationExpectedMessageFlags::Contains,
+                                    1);
+            AbilitySystemComponent->CancelPostInitForTeardownForTest();
+            AbilitySystemComponent->EndAeonMutationBatchForTest();
+
+            return bPendingBeforeTeardown
+                && TestTrue(TEXT("Teardown should keep the ASC ready flag sticky"),
+                            AbilitySystemComponent->IsAbilitySystemReady())
+                && TestFalse(TEXT("Teardown should clear outstanding post-init work"),
+                             AbilitySystemComponent->HasOutstandingPostInitWork())
+                && TestEqual(TEXT("Teardown should cancel pending post-init dispatch"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0);
+        }
+    }
+
+    return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAeonAbilitySystemComponentReadyScanDiagnosesUntrackedOptInSetTest,
+                                 "Aeon.AbilitySystemComponent.PostInit.ReadyScanDiagnosesUntrackedOptInSet",
+                                 AeonTests::AutomationTestFlags)
+bool FAeonAbilitySystemComponentReadyScanDiagnosesUntrackedOptInSetTest::RunTest(const FString&)
+{
+    TUniquePtr<AeonTests::FTestWorld> World;
+    if (const auto Actor = AeonAbilitySystemComponentTests::CreateAbilitySystemActor(*this, World))
+    {
+        UAeonAutomationTestPostInitAttributeSet::ResetPostInitState();
+        const auto AbilitySystemComponent = Actor->GetAeonAbilitySystemComponent();
+        const auto AttributeSet =
+            AeonTests::CreateOwnedAttributeSet<UAeonAutomationTestPostInitAttributeSet>(*this, AbilitySystemComponent);
+        if (TestNotNull(TEXT("Untracked opt-in set should be created"), AttributeSet))
+        {
+            AddExpectedMessagePlain(TEXT("Ready-time post-init scan found opt-in AttributeSet"),
+                                    ELogVerbosity::Warning,
+                                    EAutomationExpectedMessageFlags::Contains,
+                                    1);
+            AbilitySystemComponent->MarkAbilitySystemReadyForTest();
+
+            return TestEqual(TEXT("Untracked ready-time sets should be skipped"),
+                             UAeonAutomationTestPostInitAttributeSet::PostInitCallCount,
+                             0);
+        }
+    }
+
+    return false;
 }
 
 #endif
