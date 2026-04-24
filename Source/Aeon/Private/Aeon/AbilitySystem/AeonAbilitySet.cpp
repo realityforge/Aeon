@@ -208,7 +208,7 @@ void UAeonAbilitySet::GrantToAbilitySystem(UAbilitySystemComponent* AbilitySyste
         if (!AeonAbilitySystemComponent)
         {
             UE_LOGFMT(LogAeon,
-                      Log,
+                      Warning,
                       "GrantToAbilitySystem() requires a UAeonAbilitySystemComponent to support "
                       "IAeonAbilitySystemPostInitInterface on AttributeSet but received {AbilitySystemComponent}. "
                       "IAeonAbilitySystemPostInitInterface::OnAbilitySystemPostInit() will not be invoked for "
