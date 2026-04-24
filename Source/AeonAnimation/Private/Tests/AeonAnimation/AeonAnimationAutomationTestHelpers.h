@@ -15,10 +15,19 @@
 
 #if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
+    #include "AssetRegistry/AssetData.h"
+    #include "Engine/Blueprint.h"
     #include "Engine/Engine.h"
     #include "Engine/World.h"
     #include "GameFramework/Actor.h"
+    #include "HAL/FileManager.h"
+    #include "Kismet2/KismetEditorUtilities.h"
     #include "Misc/AutomationTest.h"
+    #include "Misc/DataValidation.h"
+    #include "Misc/Guid.h"
+    #include "Misc/Paths.h"
+    #include "Subsystems/EditorAssetSubsystem.h"
+    #include "UObject/Package.h"
     #include "UObject/UnrealType.h"
 
 namespace AeonAnimationTests
@@ -115,6 +124,182 @@ namespace AeonAnimationTests
         {
             return false;
         }
+    }
+
+    template <typename TValue, typename TObject>
+    TValue GetPropertyValue(FAutomationTestBase& Test, TObject* Object, const TCHAR* PropertyName)
+    {
+        const auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
+        if (Test.TestNotNull(FString::Printf(TEXT("Property %s should exist"), PropertyName), Property))
+        {
+            if (const auto ValuePtr = Property->template ContainerPtrToValuePtr<TValue>(Object))
+            {
+                return *ValuePtr;
+            }
+
+            Test.AddError(FString::Printf(TEXT("Property %s should be readable"), PropertyName));
+        }
+
+        return TValue();
+    }
+
+    inline const TCHAR* GetAeonAnimationTestMountRoot()
+    {
+        return TEXT("/Game/Developers/Tests/AeonAnimation");
+    }
+
+    inline FString GetAeonAnimationTestContentRoot()
+    {
+        return FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Developers/Tests/AeonAnimation"));
+    }
+
+    inline bool IsAeonAnimationTestPackagePath(const FString& PackagePath)
+    {
+        return PackagePath.StartsWith(GetAeonAnimationTestMountRoot(), ESearchCase::CaseSensitive);
+    }
+
+    inline void CleanupAeonAnimationTestContentRoot()
+    {
+        if (nullptr != GEditor)
+        {
+            if (auto const Subsystem = GEditor->GetEditorSubsystem<UEditorAssetSubsystem>())
+            {
+                Subsystem->DeleteDirectory(GetAeonAnimationTestMountRoot());
+            }
+        }
+
+        IFileManager::Get().DeleteDirectory(*GetAeonAnimationTestContentRoot(), false, true);
+    }
+
+    class FAeonAnimationTestAssetCleanupRegistrar
+    {
+    public:
+        FAeonAnimationTestAssetCleanupRegistrar()
+        {
+            auto& Framework = FAutomationTestFramework::Get();
+            OnTestStartHandle =
+                Framework.OnTestStartEvent.AddStatic(&FAeonAnimationTestAssetCleanupRegistrar::HandleTestStart);
+            OnTestEndHandle =
+                Framework.OnTestEndEvent.AddStatic(&FAeonAnimationTestAssetCleanupRegistrar::HandleTestEnd);
+        }
+
+        ~FAeonAnimationTestAssetCleanupRegistrar()
+        {
+            auto& Framework = FAutomationTestFramework::Get();
+            Framework.OnTestStartEvent.Remove(OnTestStartHandle);
+            Framework.OnTestEndEvent.Remove(OnTestEndHandle);
+            CleanupAeonAnimationTestContentRoot();
+        }
+
+    private:
+        static void HandleTestStart(FAutomationTestBase*) { CleanupAeonAnimationTestContentRoot(); }
+
+        static void HandleTestEnd(FAutomationTestBase*) { CleanupAeonAnimationTestContentRoot(); }
+
+        FDelegateHandle OnTestStartHandle;
+        FDelegateHandle OnTestEndHandle;
+    };
+
+    inline void EnsureTestAssetCleanupRegistered()
+    {
+        static FAeonAnimationTestAssetCleanupRegistrar Registrar;
+    }
+
+    inline FString NewUniqueTestPackageName(const TCHAR* const Prefix)
+    {
+        const FString BasePrefix = Prefix ? Prefix : TEXT("AeonAnimationTestObject");
+        return FString::Printf(TEXT("%s/%s_%s"),
+                               GetAeonAnimationTestMountRoot(),
+                               *BasePrefix,
+                               *FGuid::NewGuid().ToString(EGuidFormats::Digits));
+    }
+
+    inline void EnsurePackageDirectoryExists(const FString& PackageName)
+    {
+        if (IsAeonAnimationTestPackagePath(PackageName))
+        {
+            EnsureTestAssetCleanupRegistered();
+            constexpr TCHAR GameRoot[] = TEXT("/Game/");
+            const auto RelativePath = PackageName.RightChop(UE_ARRAY_COUNT(GameRoot) - 1);
+            const auto DirectoryPath = FPaths::GetPath(FPaths::Combine(FPaths::ProjectContentDir(), RelativePath));
+            if (!DirectoryPath.IsEmpty())
+            {
+                IFileManager::Get().MakeDirectory(*DirectoryPath, true);
+            }
+        }
+    }
+
+    inline UPackage* NewTransientPackage(const FString& PackageName)
+    {
+        EnsurePackageDirectoryExists(PackageName);
+        const auto Package = CreatePackage(*PackageName);
+        if (Package)
+        {
+            Package->SetFlags(RF_Transient);
+        }
+
+        return Package;
+    }
+
+    inline UBlueprint* NewBlueprint(UClass* const ParentClass,
+                                    const FString& PackageName,
+                                    const TCHAR* const ObjectName,
+                                    const EBlueprintType BlueprintType = BPTYPE_Normal)
+    {
+        const auto Package = NewTransientPackage(PackageName);
+        return Package ? FKismetEditorUtilities::CreateBlueprint(ParentClass,
+                                                                 Package,
+                                                                 FName(ObjectName),
+                                                                 BlueprintType,
+                                                                 UBlueprint::StaticClass(),
+                                                                 UBlueprintGeneratedClass::StaticClass(),
+                                                                 NAME_None)
+                       : nullptr;
+    }
+
+    inline void CompileBlueprint(UBlueprint* const Blueprint)
+    {
+        if (Blueprint)
+        {
+            FKismetEditorUtilities::CompileBlueprint(Blueprint, EBlueprintCompileOptions::SkipGarbageCollection);
+        }
+    }
+
+    inline FDataValidationContext CreateValidationContext()
+    {
+        return FDataValidationContext(true, EDataValidationUsecase::Manual, TConstArrayView<FAssetData>{});
+    }
+
+    inline bool ValidationContextContainsIssue(const FDataValidationContext& Context, const FString& ExpectedFragment)
+    {
+        for (const auto& Issue : Context.GetIssues())
+        {
+            if (Issue.Message.ToString().Contains(ExpectedFragment))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    inline bool TestValidation(FAutomationTestBase& Test,
+                               const UObject* Object,
+                               const EDataValidationResult ExpectedResult,
+                               const TCHAR* ExpectedIssueFragment = nullptr)
+    {
+        auto Context = CreateValidationContext();
+        const auto ActualResult = Object->IsDataValid(Context);
+        const auto bResultMatches =
+            Test.TestEqual(TEXT("Validation result should match expectation"), ActualResult, ExpectedResult);
+        if (ExpectedIssueFragment)
+        {
+            return Test.TestTrue(FString::Printf(TEXT("Validation issues should contain '%s'"), ExpectedIssueFragment),
+                                 ValidationContextContainsIssue(Context, ExpectedIssueFragment))
+                && bResultMatches;
+        }
+
+        return bResultMatches;
     }
 } // namespace AeonAnimationTests
 

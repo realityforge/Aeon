@@ -23,5 +23,10 @@ public class AeonAnimation : ModuleRules
         PublicDependencyModuleNames.AddRange(new[] { "Core", "GameplayTags" });
         PrivateDependencyModuleNames.AddRange(
             new[] { "CoreUObject", "Engine", "GameplayAbilities", "GameplayTasks", "Aeon" });
+
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new[] { "AssetRegistry", "UnrealEd" });
+        }
     }
 }

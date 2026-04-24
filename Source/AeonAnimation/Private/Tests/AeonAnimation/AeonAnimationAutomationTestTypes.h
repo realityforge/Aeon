@@ -16,8 +16,11 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "AbilitySystemInterface.h"
 #include "Aeon/AbilitySystem/AeonAbilitySystemComponent.h"
-#include "Animation/SkeletalMeshActor.h"
+#include "Aeon/AbilitySystem/AeonAttributeSetBase.h"
+#include "AeonAnimation/AnimNotifies/AnimNotifyState_ApplyGameplayEffect.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameplayEffect.h"
+#include "ScalableFloat.h"
 #include "Tests/AeonAnimation/AeonAnimationAutomationTestHelpers.h"
 #include "AeonAnimationAutomationTestTypes.generated.h"
 
@@ -54,4 +57,67 @@ private:
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<UAeonAnimationTestAbilitySystemComponent> AbilitySystemComponent;
+};
+
+UCLASS(NotBlueprintable)
+class UAeonAnimationTestGameplayEffectAttributeSet final : public UAeonAttributeSetBase
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(BlueprintReadOnly, Category = "Test")
+    FGameplayAttributeData EffectValue;
+    ATTRIBUTE_ACCESSORS_BASIC(ThisClass, EffectValue)
+};
+
+UCLASS(NotBlueprintable, Abstract)
+class UAeonAnimationTestGameplayEffectBase : public UGameplayEffect
+{
+    GENERATED_BODY()
+
+protected:
+    void ConfigureModifier(const float Magnitude, const EGameplayEffectDurationType InDurationPolicy)
+    {
+        DurationPolicy = InDurationPolicy;
+        if (EGameplayEffectDurationType::HasDuration == InDurationPolicy)
+        {
+            DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(0.25f));
+        }
+
+        auto& Modifier = Modifiers.AddDefaulted_GetRef();
+        Modifier.Attribute = UAeonAnimationTestGameplayEffectAttributeSet::GetEffectValueAttribute();
+        Modifier.ModifierOp = EGameplayModOp::Additive;
+        Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(Magnitude));
+    }
+};
+
+UCLASS(NotBlueprintable)
+class UAeonAnimationTestInfiniteGameplayEffect final : public UAeonAnimationTestGameplayEffectBase
+{
+    GENERATED_BODY()
+
+public:
+    UAeonAnimationTestInfiniteGameplayEffect() { ConfigureModifier(-0.65f, EGameplayEffectDurationType::Infinite); }
+};
+
+UCLASS(NotBlueprintable)
+class UAeonAnimationTestDurationGameplayEffect final : public UAeonAnimationTestGameplayEffectBase
+{
+    GENERATED_BODY()
+
+public:
+    UAeonAnimationTestDurationGameplayEffect() { ConfigureModifier(-0.65f, EGameplayEffectDurationType::HasDuration); }
+};
+
+UCLASS(NotBlueprintable)
+class UAeonAnimationTestApplyFailureNotify final : public UAnimNotifyState_ApplyGameplayEffect
+{
+    GENERATED_BODY()
+
+protected:
+    virtual FActiveGameplayEffectHandle ApplyEffect(UAbilitySystemComponent* AbilitySystemComponent,
+                                                    const UGameplayEffect* Effect) const override
+    {
+        return FActiveGameplayEffectHandle();
+    }
 };
